@@ -63,9 +63,9 @@ public interface IAddressableInformationResource extends INode {
 	
 	String getBody(String language);
 	
-	void setVersion(int version);
+	void setAIRVersion(int version);
 	
-	int getVersion();
+	int getAIRVersion();
 	
 	void setPurpleNumber(String purpleNumber, String hostProxyLocator);
 	

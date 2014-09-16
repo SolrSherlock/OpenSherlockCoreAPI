@@ -29,6 +29,26 @@ import org.topicquests.model.api.ITicket;
 public interface INodeModel {
 	
 	/**
+	 * Preferred way to add a <code>superClassLocator</code>
+	 * to an existing <code>node</code> to deal with
+	 * changes to transitive closure
+	 * @param node
+	 * @param superClassLocator
+	 * @return
+	 */
+	IResult addSuperClass(INode node, String superClassLocator);
+	
+	/**
+	 * Preferred way to set a <code>typeLocator</code> to an
+	 * existing <code>node</code> to deal with changes to 
+	 * transitive closure
+	 * @param node
+	 * @param typeLocator
+	 * @return
+	 */
+	IResult setNodeType(INode node, String typeLocator);
+	
+	/**
 	 * Return a new {@link IAddressableInformationResource}
 	 * @param locator
 	 * @param subject can be <code>null</code>
@@ -37,7 +57,7 @@ public interface INodeModel {
 	 * @param userId
 	 * @param isPrivate
 	 * @return
-	 */
+	 * /
 	IAddressableInformationResource newAIR(String locator, String subject, String body, String language,
 			String userId, boolean isPrivate);
 	

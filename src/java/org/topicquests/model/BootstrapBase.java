@@ -60,7 +60,7 @@ public class BootstrapBase {
 		
 		INode node =  model.newInstanceNode(locator, type, label, description, "en", 
 									 ITopicQuestsOntology.SYSTEM_USER, smallIcon, icon, false);
-		IResult temp = database.putNode(node);
+		IResult temp = database.putNode(node,false);
 		model.recycleNode(node);
 	}
 	
@@ -84,7 +84,7 @@ public class BootstrapBase {
 		else
 			node = model.newSubclassNode(locator, type, label, description, "en", 
 					ITopicQuestsOntology.SYSTEM_USER, smallIcon, icon, false);
-		temp = database.putNode(node);
+		temp = database.putNode(node,false);
 		if (temp.hasError()) {
 			result.addErrorString(temp.getErrorString());
 			result.setResultObject(new Boolean(false));

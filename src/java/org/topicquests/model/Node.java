@@ -18,19 +18,17 @@ package org.topicquests.model;
 import java.util.*;
 
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.nex.util.DateUtil;
+import org.topicquests.model.api.node.ICitation;
+import org.topicquests.model.api.legends.IEventLegend;
+import org.topicquests.model.api.node.INode;
+import org.topicquests.model.api.query.INodeQuery;
+import org.topicquests.model.api.node.IPersonEvent;
+import org.topicquests.model.api.legends.IPersonLegend;
+import org.topicquests.model.api.node.ITuple;
 import org.topicquests.model.api.IValueMatrix;
 import org.topicquests.model.api.IXMLFields;
-import org.topicquests.model.api.legends.IEventLegend;
-import org.topicquests.model.api.legends.IPersonLegend;
-import org.topicquests.model.api.node.IAddressableInformationResource;
-import org.topicquests.model.api.node.ICitation;
 import org.topicquests.model.api.node.IConceptualGraph;
-import org.topicquests.model.api.node.INode;
-import org.topicquests.model.api.node.IPersonEvent;
-import org.topicquests.model.api.node.ITuple;
-import org.topicquests.model.api.query.INodeQuery;
 import org.topicquests.common.ResultPojo;
 import org.topicquests.common.api.IResult;
 import org.topicquests.common.api.ITopicQuestsOntology;
@@ -44,40 +42,36 @@ import org.topicquests.util.JSONUtil;
  */
 public class Node implements 
 		INode, ITuple, ICitation, 
-		IValueMatrix, IConceptualGraph, IPersonEvent,
-		IAddressableInformationResource {
-	/** data */
+		IValueMatrix, IConceptualGraph, IPersonEvent {
 	private JSONObject properties;
-	/** AIRs can be created native to this topic, or they can
-	 * be transcluded in from other topics
-	 */
-	private List<IAddressableInformationResource> airs = null;
 	
 	/**
-	 * Generic constructor
+	 * 
 	 */
 	public Node() {
 		properties = new JSONObject();
-		//never return a null list
-		this.setTransitiveClosure(new ArrayList<String>());
 	}
 
-	/**
-	 * Constructor from a {@link JSONObject}
-	 * @param jo
-	 */
 	public Node(JSONObject jo) {
 		properties = jo;
 	}
 	
-	//////////////////////////////////////
-	// CORE INode
-	//////////////////////////////////////
+	/**
+	 * Constructor used when creating from a Solr hit
+	 * @param props 
+	 */
+	public Node(Map props) {
+		properties = JSONUtil.map2JSONObject(props);
+	}
+	
+	 JSONObject jsonToMap(Map<String,Object> props) {
+		//TODO this might need to be converted
+		return  (JSONObject)props;
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#getLocator()
 	 */
-	@Override
 	public String getLocator() {
 		return (String)properties.get(ITopicQuestsOntology.LOCATOR_PROPERTY);
 	}
@@ -85,24 +79,24 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#getLabel()
 	 */
-	@Override
 	public String getLabel(String language) {
 		String field = makeField(ITopicQuestsOntology.LABEL_PROPERTY,language);
 		return getFirstListValue(field);
 	}
 	
-	@Override
 	public String makeField(String fieldBase, String language) {
 		String result = fieldBase;
 		if (!language.equals("en"))
 			result += language;
 		return result;
 	}
+//	String stripLanguage(String inString) {
+//		return inString.substring(0,inString.lastIndexOf('@'));
+//	}
 
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#getNodeType()
 	 */
-	@Override
 	public String getNodeType() {
 		return (String)properties.get(ITopicQuestsOntology.INSTANCE_OF_PROPERTY_TYPE);
 	}
@@ -110,7 +104,6 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#getSmallImage()
 	 */
-	@Override
 	public String getSmallImage() {
 		return (String)properties.get(ITopicQuestsOntology.SMALL_IMAGE_PATH);
 	}
@@ -118,7 +111,6 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#getImage()
 	 */
-	@Override
 	public String getImage() {
 		return (String)properties.get(ITopicQuestsOntology.LARGE_IMAGE_PATH);
 	}
@@ -126,7 +118,6 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#getCreatorId()
 	 */
-	@Override
 	public String getCreatorId() {
 		return (String)properties.get(ITopicQuestsOntology.CREATOR_ID_PROPERTY);
 	}
@@ -134,7 +125,6 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#getDetails()
 	 */
-	@Override
 	public String getDetails(String language) {
 		String field = makeField(ITopicQuestsOntology.DETAILS_PROPERTY,language);
 		return getFirstListValue(field);
@@ -145,17 +135,31 @@ public class Node implements
 	 * @see org.topicquests.model.api.INode#setLabel(java.lang.String)
 	 * IS MULTIVALUED
 	 */
-	@Override
 	public void addLabel(String label, String language, String userId, boolean isLanguageAddition) {
 		String field = makeField(ITopicQuestsOntology.LABEL_PROPERTY,language);
 		addMultivaluedSetStringProperty(field, label);
 	}
 
+	private void addMultivaluedSetStringProperty(String key, String value) {
+		
+		Object o = properties.get(key);
+		List<String> ll;
+		if (o == null) {
+			ll = new ArrayList<String>();
+		} else if ( o instanceof String) {
+			ll = new ArrayList<String>();
+			ll.add((String)o);
+		} else {
+			ll = (List<String>)o;
+		}
+		if (!ll.contains(value))
+			ll.add(value);
+		properties.put(key, ll);
+	}
 
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#setDetails(java.lang.String)
 	 */
-	@Override
 	public void addDetails(String details, String language, String userId, boolean isLanguageAddition) {
 		String field = makeField(ITopicQuestsOntology.DETAILS_PROPERTY,language);
 		addMultivaluedSetStringProperty(field, details);
@@ -164,33 +168,30 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#setLocator(java.lang.String)
 	 */
-	@Override
 	public void setLocator(String locator) {
 		properties.put(ITopicQuestsOntology.LOCATOR_PROPERTY, locator);
 	}
 
-	
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#setDate(java.util.Date)
-	 */
-	@Override
+	 * /
+	public void setDate(String date) {
+		//In Theory, Solr converts this to Z (UTC)
+		properties.put(ITopicQuestsOntology.CREATED_DATE_PROPERTY, date);
+	} */
 	public void setDate(Date date) {
 		properties.put(ITopicQuestsOntology.CREATED_DATE_PROPERTY, DateUtil.defaultTimestamp(date));
 	}
 
-	@Override
 	public void setLastEditDate(Date date) {
 		properties.put(ITopicQuestsOntology.LAST_EDIT_DATE_PROPERTY, DateUtil.defaultTimestamp(date));
 	}
 
 	
-	@Override
 	public Date getDate() {
 		String dx = (String)properties.get(ITopicQuestsOntology.CREATED_DATE_PROPERTY);
 		return DateUtil.fromDefaultTimestamp(dx);
 	}
-	
-	@Override
 	public Date getLastEditDate() {
 		String dx = (String)properties.get(ITopicQuestsOntology.LAST_EDIT_DATE_PROPERTY);
 		return DateUtil.fromDefaultTimestamp(dx);
@@ -199,7 +200,6 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#setSmallImage(java.lang.String)
 	 */
-	@Override
 	public void setSmallImage(String img) {
 		properties.put(ITopicQuestsOntology.SMALL_IMAGE_PATH, img);
 	}
@@ -207,7 +207,6 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#setImage(java.lang.String)
 	 */
-	@Override
 	public void setImage(String img) {
 		properties.put(ITopicQuestsOntology.LARGE_IMAGE_PATH, img);
 	}
@@ -215,7 +214,6 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#setCreatorId(java.lang.String)
 	 */
-	@Override
 	public void setCreatorId(String id) {
 		properties.put(ITopicQuestsOntology.CREATOR_ID_PROPERTY, id);
 	}
@@ -223,7 +221,6 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#setNodeType(java.lang.String)
 	 */
-	@Override
 	public void setNodeType(String typeLocator) {
 		properties.put(ITopicQuestsOntology.INSTANCE_OF_PROPERTY_TYPE, typeLocator);
 	}
@@ -231,7 +228,6 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#addSuperclassId(java.lang.String)
 	 */
-	@Override
 	public void addSuperclassId(String superclassLocator) {
 		List<String> ids = listSuperclassIds();
 		if (ids == null || ids.size() == 0) {
@@ -245,166 +241,14 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#listSuperclassIds()
 	 */
-	@Override
 	public List<String> listSuperclassIds() {
 		return getMultivaluedProperty(ITopicQuestsOntology.SUBCLASS_OF_PROPERTY_TYPE);
 	}
 
-	@Override
-	public void addAIR(IAddressableInformationResource air) {
-		if (airs == null)
-			airs = new ArrayList<IAddressableInformationResource>();
-		air.addHostProxyLocator(this.getLocator());
-		air.setPurpleNumber(Integer.toString(airs.size()+1), this.getLocator());
-		this.addMultivaluedSetStringProperty(ITopicQuestsOntology.AIR_LIST_PROPERTY_TYPE, air.toJSON());
-	}
 
-	@Override
-	public IResult getAIR(String airLocator) {
-		IResult result = new ResultPojo();
-		if (airs != null && !airs.isEmpty()) {
-			IAddressableInformationResource a;
-			Iterator<IAddressableInformationResource>itr = airs.iterator();
-			while (itr.hasNext()) {
-				a = itr.next();
-				if (a.getLocator().equals(airLocator)) {
-					result.setResultObject(a);
-					return result;
-				}
-			}
-			
-		} else {
-			List<String>airx = (List<String>)properties.get(ITopicQuestsOntology.AIR_LIST_PROPERTY_TYPE);
-			if (airx != null) {
-				String lox = "\""+airLocator+"\"";
-				String aix;
-				Iterator<String>itr = airx.iterator();
-				int where = -1;
-				while (itr.hasNext()) {
-					aix = itr.next();
-					if (aix.indexOf(lox) > -1) {
-						JSONParser p = new JSONParser();
-						try {
-							result.setResultObject(this.jsonStringToAIR(aix, p));
-						} catch (Exception e) {
-							result.addErrorString(e.getMessage());
-							e.printStackTrace();
-						}
-					}
-						
-				}
-			}
-		}
-		return result;
-	}
-
-/*	@Override
-	public List<String> listAIRLocators() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-*/
-	@Override
-	public IResult listAIRs() {
-		IResult result = new ResultPojo();
-		if (airs != null && !airs.isEmpty())
-			result.setResultObject(airs);
-		else {
-			List<String>airx = (List<String>)properties.get(ITopicQuestsOntology.AIR_LIST_PROPERTY_TYPE);
-			if (airx != null) {
-				String aix;
-				Iterator<String>itr = airx.iterator();
-				try {
-					JSONParser p = new JSONParser();
-					airs = new ArrayList<IAddressableInformationResource>();
-					while (itr.hasNext()) {
-						aix = itr.next();
-						airs.add(this.jsonStringToAIR(aix, p));
-					}
-					result.setResultObject(airs);
-				} catch (Exception e) {
-					result.addErrorString(e.getMessage());
-					e.printStackTrace();
-				}
-			}		}
-		return result;
-	}
-
-	@Override
-	public void removeAIR(String airLocator) {
-		//deal with AIRS
-		IAddressableInformationResource toRemove = null;
-		if (airs != null && !airs.isEmpty()) {
-			IAddressableInformationResource a;
-			Iterator<IAddressableInformationResource>itr = airs.iterator();
-			while (itr.hasNext()) {
-				a = itr.next();
-				if (a.getLocator().equals(airLocator)) {
-					toRemove = a;
-				}
-			}
-			
-		} 
-		//deal with properties
-		String as = null;
-		List<String>airx = (List<String>)properties.get(ITopicQuestsOntology.AIR_LIST_PROPERTY_TYPE);
-		if (airx != null) {
-			String lox = "\""+airLocator+"\"";
-			String aix;
-			Iterator<String>itr = airx.iterator();
-			int where = -1;
-			while (itr.hasNext()) {
-				aix = itr.next();
-				if (aix.indexOf(lox) > -1) {
-					as = aix;
-				}
-					
-			}
-		}
-		if (as != null) {
-			airx.remove(as);
-			properties.put(ITopicQuestsOntology.AIR_LIST_PROPERTY_TYPE, airx);
-		}
-		
-	}
-
-	@Override
-	public List<String> listTransitiveClosure() {
-		List<String>result = (List<String>)properties.get(ITopicQuestsOntology.TRANSITIVE_CLOSURE_PROPERTY_TYPE);
-		return result;
-	}
-
-	@Override
-	public void setTransitiveClosure(List<String> tc) {
-		properties.put(ITopicQuestsOntology.TRANSITIVE_CLOSURE_PROPERTY_TYPE, tc);
-	}
-
-	@Override
-	public void addTransitiveClosureLocator(String locator) {
-		List<String>result = (List<String>)properties.get(ITopicQuestsOntology.TRANSITIVE_CLOSURE_PROPERTY_TYPE);
-		//should never be null, but must look
-		if (result == null)
-			result = new ArrayList<String>();
-		if (!result.contains(locator)) {
-			result.add(locator);
-			properties.put(ITopicQuestsOntology.TRANSITIVE_CLOSURE_PROPERTY_TYPE, result);
-		}
-		
-	}
-
-	@Override
-	public void removeTransitiveClosureLocator(String locator) {
-		List<String>result = (List<String>)properties.get(ITopicQuestsOntology.TRANSITIVE_CLOSURE_PROPERTY_TYPE);
-		//should never be null, but must look
-		if (result != null) {
-			result.remove(locator);
-			properties.put(ITopicQuestsOntology.TRANSITIVE_CLOSURE_PROPERTY_TYPE, result);
-		}
-	}
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#setIsPrivate(boolean)
 	 */
-	@Override
 	public void setIsPrivate(boolean isPrivate) {
 		String x = (isPrivate ? "true":"false");
 		properties.put(ITopicQuestsOntology.IS_PRIVATE_PROPERTY, x);
@@ -413,7 +257,6 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#getIsPrivate()
 	 */
-	@Override
 	public boolean getIsPrivate() {
 		Object x = properties.get(ITopicQuestsOntology.IS_PRIVATE_PROPERTY);
 		if (x != null) {
@@ -427,11 +270,20 @@ public class Node implements
 		}
 		return false;
 	}
+	
+	@Override
+	public boolean isA(String typeLocator) {
+		if (this.getNodeType() != null && this.getNodeType().equals(typeLocator))
+			return true;
+		List<String>sups = this.listTransitiveClosure();
+		if (sups != null && !sups.isEmpty())
+			return sups.contains(typeLocator);
+		return false;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#setURL(java.lang.String)
 	 */
-	@Override
 	public void setURL(String url) {
 		properties.put(ITopicQuestsOntology.RESOURCE_URL_PROPERTY, url);
 	}
@@ -439,7 +291,6 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#getURL()
 	 */
-	@Override
 	public String getURL() {
 		return (String)properties.get(ITopicQuestsOntology.RESOURCE_URL_PROPERTY);
 	}
@@ -447,13 +298,11 @@ public class Node implements
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INode#toMap()
 	 */
-	@Override
 	public Map<String, Object> getProperties() {
 		return properties;
 	}
 
-	@Override
-	public List<String> listRestrictionCredentials() {
+	public List<String> listACLValues() {
 		List<String> result = getMultivaluedProperty(ITopicQuestsOntology.RESTRICTION_PROPERTY_TYPE);
 		return result;
 	}
@@ -481,27 +330,23 @@ public class Node implements
 		return result;
 	}
 	
-	@Override
-	public void addRestrictionCredential(String userId) {
+	public void addACLValue(String value) {
 		List<String> l = getMultivaluedProperty(ITopicQuestsOntology.RESTRICTION_PROPERTY_TYPE);
-		if (!l.contains(userId))
-			l.add(userId);
+		if (!l.contains(value))
+			l.add(value);
 	}
 
-	@Override
-	public void removeRestrictionCredential(String userId) {
+	public void removeACLValue(String value) {
 		List<String> l = (List<String>)properties.get(ITopicQuestsOntology.RESTRICTION_PROPERTY_TYPE);
 		if (l != null)
-			l.remove(userId);
+			l.remove(value);
 	}
 
-	@Override
-	public boolean containsRestrictionCredentials(String userId) {
-		List<String> creds = listRestrictionCredentials();
-		return creds.contains(userId);
+	public boolean containsACL(String value) {
+		List<String> creds = listACLValues();
+		return creds.contains(value);
 	}
 	
-	@Override
 	public void addPSI(String psi) {
 //		properties.put(ITopicQuestsOntology.PSI_PROPERTY_TYPE, psi);
 		List<String> ids = getMultivaluedProperty(ITopicQuestsOntology.PSI_PROPERTY_TYPE);
@@ -510,7 +355,6 @@ public class Node implements
 			ids.add(psi);
 	}
 
-	@Override
 	public List<String> listPSIValues() {
 		List<String> result = getMultivaluedProperty(ITopicQuestsOntology.PSI_PROPERTY_TYPE);
 		return result;
@@ -518,7 +362,6 @@ public class Node implements
 
 //TODO HUGE ISSUE WITH internal updates -- must do version if _version_ is available
 
-	@Override
 	public void addTuple(String tupleLocator) {
 //		System.out.println("ADDTUPLE- "+properties);
 		addMultivaluedSetStringProperty(ITopicQuestsOntology.TUPLE_LIST_PROPERTY,tupleLocator);
@@ -531,7 +374,6 @@ public class Node implements
 //		System.out.println("ADDTUPLERestricted-0 "+properties.get(ITopicQuestsOntology.TUPLE_LIST_PROPERTY_RESTRICTED));
 	}
 
-	@Override
 	public List<String> listTuples() {
 		List<String> result = this.getMultivaluedProperty(ITopicQuestsOntology.TUPLE_LIST_PROPERTY);
 		if (result == null)
@@ -539,7 +381,6 @@ public class Node implements
 		return result;
 	}
 
-	@Override
 	public List<String> listRestrictedTuples() {
 		List<String> result = this.getMultivaluedProperty(ITopicQuestsOntology.TUPLE_LIST_PROPERTY_RESTRICTED);
 		if (result == null)
@@ -547,54 +388,44 @@ public class Node implements
 		return result;
 	}
 
-	@Override
 	public List<String> listLabels() {
 		List<String> l = fetchLabels(ITopicQuestsOntology.LABEL_PROPERTY);
 		return concatinateStringLists(l);
 	}
 
-	@Override
 	public List<String> listDetails() {
 		List<String> l = fetchLabels(ITopicQuestsOntology.DETAILS_PROPERTY);
 		return concatinateStringLists(l);
 	}
 
-	@Override
 	public void setObject(String value) {
 		properties.put(ITopicQuestsOntology.TUPLE_OBJECT_PROPERTY, value);
 	}
 
-	@Override
 	public void setObjectType(String typeLocator) {
 		properties.put(ITopicQuestsOntology.TUPLE_OBJECT_TYPE_PROPERTY, typeLocator);
 	}
 
-	@Override
 	public String getObject() {
 		return (String)properties.get(ITopicQuestsOntology.TUPLE_OBJECT_PROPERTY);
 	}
 
-	@Override
 	public String getObjectType() {
 		return (String)properties.get(ITopicQuestsOntology.TUPLE_OBJECT_TYPE_PROPERTY);
 	}
 
-	@Override
 	public void setSubjectLocator(String locator) {
 		properties.put(ITopicQuestsOntology.TUPLE_SUBJECT_PROPERTY, locator);
 	}
 
-	@Override
 	public String getSubjectLocator() {
 		return (String)properties.get(ITopicQuestsOntology.TUPLE_SUBJECT_PROPERTY);
 	}
 
-	@Override
 	public void setSubjectType(String subjectType) {
 		properties.put(ITopicQuestsOntology.TUPLE_SUBJECT_TYPE_PROPERTY, subjectType);
 	}
 
-	@Override
 	public String getSubjectType() {
 		return (String)properties.get(ITopicQuestsOntology.TUPLE_SUBJECT_TYPE_PROPERTY);
 	}
@@ -615,13 +446,11 @@ public class Node implements
 		return (String)properties.get(ITopicQuestsOntology.TUPLE_RELATION_LOCATOR_PROPERTY);
 	}
 */
-	@Override
 	public void setIsTransclude(boolean isT) {
 		String x = (isT ? "true":"false");
 		properties.put(ITopicQuestsOntology.TUPLE_IS_TRANSCLUDE_PROPERTY, x);
 	}
 
-	@Override
 	public boolean getIsTransclude() {
 		Object x = properties.get(ITopicQuestsOntology.TUPLE_IS_TRANSCLUDE_PROPERTY);
 		if (x != null) {
@@ -636,12 +465,10 @@ public class Node implements
 		return false;
 	}
 
-	@Override
 	public String toJSON() {
 		return properties.toJSONString();
 	}
 
-	@Override
 	public IResult doUpdate() {
 		IResult result = new ResultPojo();
 		IResult temp;
@@ -650,6 +477,15 @@ public class Node implements
 		return result;
 	}
 
+	@Override
+	public void setVersion(String version) {
+		properties.put(ITopicQuestsOntology.VERSION, version);
+	}
+
+	@Override
+	public String getVersion() {
+		return (String)properties.get(ITopicQuestsOntology.VERSION);
+	}
 
 	@Override
 	public String toXML() {
@@ -661,51 +497,15 @@ public class Node implements
 			nx = IXMLFields.TUPLE;
 		buf.append("<"+nx+" "+IXMLFields.LOCATOR_ATT+"=\""+getLocator()+"\">\n");
 		Iterator<String> keys = this.properties.keySet().iterator();
-		Iterator<String>itrA, itrB;
-		String key, key2, key3;
+		String key;
 		Object val;
-		Map<String,Map<String,String>>airx;
-		Map<String,String>airy;
-		String sval;
 		while (keys.hasNext()) {
 			key = keys.next();
 			if (!key.equals(ITopicQuestsOntology.LOCATOR_PROPERTY)) {
-				if (key.equals(ITopicQuestsOntology.AIR_MODEL_PROPERTY_TYPE)) {
-					airx = (Map<String,Map<String,String>>)properties.get(key);
-					if (airx != null) {
-						buf.append("  <"+IXMLFields.PROPERTY+" "+IXMLFields.KEY_ATT+"=\""+key+"\" >\n");
-						//Take apart this map
-						itrA = airx.keySet().iterator();
-						while (itrA.hasNext()) {
-							key2 = itrA.next();
-							buf.append("  <"+IXMLFields.PROPERTY+" "+IXMLFields.KEY_ATT+"=\""+ITopicQuestsOntology.AIR_HOST_PROPERTY_TYPE+"\" >\n");
-							//key2 is airhostlocator
-							buf.append("    <"+IXMLFields.VALUE+"><![CDATA["+key2+"]]></"+IXMLFields.VALUE+">\n");
-							buf.append("  </"+IXMLFields.PROPERTY+">\n");
-							airy = airx.get(key2);
-							if (airy != null) {
-								itrB = airy.keySet().iterator();
-								while (itrB.hasNext()) {
-									key3 = itrB.next();
-									//key3 is an Air-related key: parent or purple
-									sval = airy.get(key3);
-									if (sval != null) {
-									buf.append("    <"+IXMLFields.PROPERTY+" "+IXMLFields.KEY_ATT+"=\""+key3+"\" >\n");
-									buf.append("      <"+IXMLFields.VALUE+"><![CDATA["+sval+"]]></"+IXMLFields.VALUE+">\n");
-									buf.append("    </"+IXMLFields.PROPERTY+">\n");
-									}
-								}
-							}
-						}
-						buf.append("  </"+IXMLFields.PROPERTY+">\n");
-					}
-					
-				} else {
-					buf.append("  <"+IXMLFields.PROPERTY+" "+IXMLFields.KEY_ATT+"=\""+key+"\" >\n");
-					val = properties.get(key);
-					appendValue(val,buf,key);
-					buf.append("  </"+IXMLFields.PROPERTY+">\n");
-				}
+				buf.append("  <"+IXMLFields.PROPERTY+" "+IXMLFields.KEY_ATT+"=\""+key+"\" >\n");
+				val = properties.get(key);
+				appendValue(val.toString(),buf,key);
+				buf.append("  </"+IXMLFields.PROPERTY+">\n");
 			}
 		}
 		buf.append("</"+nx+">\n");
@@ -786,10 +586,6 @@ public class Node implements
 		else
 			setIsPrivate(false);		
 	}
-
-	//////////////////////////////////////
-	// CORE ITuple
-	//////////////////////////////////////
 
 	@Override
 	public void setObjectRole(String roleLocator) {
@@ -892,6 +688,23 @@ public class Node implements
 		}
 		return result;
 	}
+	/**
+	 * Given a <code>baseField</code>, e.g. "label", fetch all
+	 * label fields regardless of language codes
+	 * @param baseField
+	 * @return
+	 */
+	List<String> fetchLabels(String baseField) {
+		List<String>result = new ArrayList<String>();
+		Iterator<String>itr = properties.keySet().iterator();
+		String key;
+		while (itr.hasNext()) {
+			key = itr.next();
+			if (key.startsWith(baseField))
+				result.add(key);
+		}
+		return result;
+	}
 
 	@Override
 	public List<String> listConceptLocators() {
@@ -940,10 +753,10 @@ public class Node implements
 	}
 
 	@Override
-	public boolean isA(String typeLocator) {
+	public boolean localIsA(String typeLocator) {
 		if (this.getNodeType().equals(typeLocator))
 			return true;
-		List<String>sups = this.listTransitiveClosure();
+		List<String>sups = this.listSuperclassIds();
 		if (sups != null && !sups.isEmpty())
 			return sups.contains(typeLocator);
 		return false;
@@ -1133,170 +946,312 @@ public class Node implements
 		return (String)properties.get(ITopicQuestsOntology.TUPLE_SIGNATURE_PROPERTY);
 	}
 
-	//////////////////////////////////////
-	// CORE IAddressableInformationResource
-	//////////////////////////////////////
-
 	@Override
-	public void setSubject(String text, String language) {
-		this.addLabel(text, language, this.getCreatorId(), false);
-		
-	}
-	@Override
-	public String getSubject(String language) {
-		return this.getLabel(language);
-	}
-	@Override
-	public void setBody(String text, String language) {
-		this.addDetails(text, language, this.getCreatorId(), false);
-	}
-
-	@Override
-	public String getBody(String language) {
-		return this.getDetails(language);
-	}
-
-	@Override
-	public void setVersion(int version) {
-		properties.put(ITopicQuestsOntology.VERSION_PROPERTY_TYPE, version);
-		
-	}
-
-	@Override
-	public int getVersion() {
-		int result = 0;
-		String x = (String)properties.get(ITopicQuestsOntology.VERSION_PROPERTY_TYPE);
-		if (x != null)
-			result = Integer.parseInt(x);
-		return result;
-	}
-
-	@Override
-	public void setPurpleNumber(String purpleNumber, String hostProxyLocator) {
-		Map<String,Map<String,String>> m = getModelMap();
-		Map<String,String>m2 = m.get(hostProxyLocator);
-		if (m2 == null) {
-			m2 = new HashMap<String,String>();
-			m.put(hostProxyLocator, m2);
-		}
-		m2.put(ITopicQuestsOntology.AIR_PURPLE_NUMBER_PROPERTY_TYPE, purpleNumber);
+	public void addPivot(String relationType, String relationLabel,
+			String documentSmallIcon, String targetLocator, String targetLabel,
+			String nodeType) {
 		// TODO Auto-generated method stub
-		properties.put(ITopicQuestsOntology.AIR_MODEL_PROPERTY_TYPE, m);
+		
 	}
 
 	@Override
-	public String getPurpleNumber(String hostProxyLocator) {
-		Map<String,Map<String,String>> m = getModelMap();
-		Map<String,String>m2 = m.get(hostProxyLocator);
-		if (m2 == null)
-			return null;
-		return (String)m2.get(ITopicQuestsOntology.AIR_PURPLE_NUMBER_PROPERTY_TYPE);
+	public List<JSONObject> listPivotsByRelationType(String relationType) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
-	public void addHostProxyLocator(String hostProxyLocator) {
-		Map<String,Map<String,String>> m = getModelMap();
-		Map<String,String>m2 = m.get(hostProxyLocator);
-		if (m2 == null) {
-			m2 = new HashMap<String,String>();
-			m.put(hostProxyLocator, m2);
-			//adding an airhost just creates this new map
-			properties.put(ITopicQuestsOntology.AIR_MODEL_PROPERTY_TYPE, m);
-		}
+	public void addChildNode(String contextLocator, String smallIcon,
+			String locator, String subject, String transcluderLocator) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
-	public void setParentNodeLocator(String parentLocator, String hostProxyLocator) {
-		Map<String,Map<String,String>> m = getModelMap();
-		String lox = hostProxyLocator;
-		if (lox == null)
-			lox = this.getLocator();
-		Map<String,String>m2 = m.get(lox);
-		if (m2 == null) {
-			m2 = new HashMap<String,String>();
-			m.put(lox, m2);
-		}
-		m2.put(ITopicQuestsOntology.AIR_PARENT_PROPERTY_TYPE, lox);
-		properties.put(ITopicQuestsOntology.AIR_MODEL_PROPERTY_TYPE, m);
+	public List<JSONObject> listChildNodes(String contextLocator) {
+		// TODO Auto-generated method stub
+		return null;
 	}
-	
+
 	@Override
-	public String getParentNodeLocator(String hostProxyLocator) {
-		Map<String,Map<String,String>> m = getModelMap();
-		String lox = hostProxyLocator;
-		if (lox == null)
-			lox = this.getLocator();
-		Map<String,String>m2 = m.get(lox);
-		if (m2 != null)
-			return (String)m2.get(ITopicQuestsOntology.AIR_PARENT_PROPERTY_TYPE);
+	public void addParentNode(String contextLocator, String smallIcon,
+			String locator, String subject) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public List<JSONObject> listParentNodes(String contextLocator) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 
-	/**
-	 * Does not return <code>null</code>
-	 * @return
-	 */
-	private Map<String,Map<String,String>> getModelMap() {
-		Map<String,Map<String,String>> result = (Map<String,Map<String,String>>)properties.get(ITopicQuestsOntology.AIR_MODEL_PROPERTY_TYPE);
-		if (result == null)
-			result = new HashMap<String,Map<String,String>>();
-		return result;
-	}
-
-	//////////////////////////////////////
-	// Internal Support
-	//////////////////////////////////////
-
-	private void addMultivaluedSetStringProperty(String key, String value) {
+	@Override
+	public void putInfoBox(String name, String jsonString) {
+		// TODO Auto-generated method stub
 		
-		Object o = properties.get(key);
-		List<String> ll;
-		if (o == null) {
-			ll = new ArrayList<String>();
-		} else if ( o instanceof String) {
-			ll = new ArrayList<String>();
-			ll.add((String)o);
-		} else {
-			ll = (List<String>)o;
-		}
-		if (!ll.contains(value))
-			ll.add(value);
-		properties.put(key, ll);
 	}
 
-	/**
-	 * Return an {@link IAddressableInformationResource} from the
-	 * given <code>jsonString</code>
-	 * @param jsonString
-	 * @param p
-	 * @return
-	 * @throws Exception
-	 */
-	private IAddressableInformationResource jsonStringToAIR(String jsonString, JSONParser p) throws Exception{
-		JSONObject jo = (JSONObject)p.parse(jsonString);
-		IAddressableInformationResource result = new Node(jo);
+	@Override
+	public JSONObject getInfoBox(String name) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void removeInfoBox(String name) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public JSONObject getInfoBoxes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setSubject(String subjectString, String language,
+			String userLocator) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getSubject(String language) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void updateSubject(String updatedSubject, String language,
+			String userLocator, String comment) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setBody(String bodyString, String language, String userLocator) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getBody(String language) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void updateBody(String updatedBody, String language,
+			String userLocator, String comment) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public List<String> listBodyVersions(String language) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> listSubjectVersions(String language) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setDocumentTitle(String title, String language, String userId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getDocumentTitle(String language) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setDocumentAbstract(String abs, String language, String userId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getDocumentAbstract(String language) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addAuthorLocator(String authorLocator) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public List<String> listAuthorLocators() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setPublicationTypeLocator(String typeLocator) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getPublicationTypeLocator() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setPublisherLocator(String publisherLocator) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getPublisherLocator() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setDOI(String doi) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getDOI() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setISBN(String isbn) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getISBN() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setISSN(String issn) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getISSSN() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setJournalTitle(String journalTitle) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getJournalTitle() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setPublicationDate(Date d) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Date getPublicationDate() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setJournalVolume(String vol) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getJournalVolume() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setJournalNumber(String num) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getJournalNumber() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setPages(String pages) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getPages() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public List<String> listTransitiveClosure() {
+		List<String>result = (List<String>)properties.get(ITopicQuestsOntology.TRANSITIVE_CLOSURE_PROPERTY_TYPE);
 		return result;
 	}
-	/**
-	 * Given a <code>baseField</code>, e.g. "label", fetch all
-	 * label fields regardless of language codes
-	 * @param baseField
-	 * @return
-	 */
-	private List<String> fetchLabels(String baseField) {
-		List<String>result = new ArrayList();
-		Iterator<String>itr = properties.keySet().iterator();
-		String key;
-		while (itr.hasNext()) {
-			key = itr.next();
-			if (key.startsWith(baseField))
-				result.add(key);
-		}
-		return result;
+
+	@Override
+	public void setTransitiveClosure(List<String> tc) {
+		properties.put(ITopicQuestsOntology.TRANSITIVE_CLOSURE_PROPERTY_TYPE, tc);
 	}
 
+	@Override
+	public void addTransitiveClosureLocator(String locator) {
+		List<String>result = (List<String>)properties.get(ITopicQuestsOntology.TRANSITIVE_CLOSURE_PROPERTY_TYPE);
+		//should never be null, but must look
+		if (result == null)
+			result = new ArrayList<String>();
+		if (!result.contains(locator)) {
+			result.add(locator);
+			properties.put(ITopicQuestsOntology.TRANSITIVE_CLOSURE_PROPERTY_TYPE, result);
+		}
+		
+	}
 
+	@Override
+	public void removeTransitiveClosureLocator(String locator) {
+		List<String>result = (List<String>)properties.get(ITopicQuestsOntology.TRANSITIVE_CLOSURE_PROPERTY_TYPE);
+		//should never be null, but must look
+		if (result != null) {
+			result.remove(locator);
+			properties.put(ITopicQuestsOntology.TRANSITIVE_CLOSURE_PROPERTY_TYPE, result);
+		}
+	}
 
 
 

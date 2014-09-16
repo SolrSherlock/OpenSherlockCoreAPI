@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Date;
 
+import org.json.simple.JSONObject;
 import org.topicquests.common.api.IResult;
 
 /**
@@ -44,12 +45,11 @@ public interface INode {
 	String makeField(String fieldBase, String language);
 	
 	/**
-	 * Return <code>true</code> if <code>typeLocator</code> is found in 
-	 * this node's <em>transitive closure</em>
+	 * Perform a simple test on nodeType and superClasses
 	 * @param typeLocator
 	 * @return
 	 */
-	boolean isA(String typeLocator);
+	boolean localIsA(String typeLocator);
 	
 	/**
 	 * Locator is the identifier for this tuple
@@ -100,6 +100,17 @@ public interface INode {
 	 */
 	boolean isTuple();
 
+	/**
+	 * SOLR4 does a <code>_version_</code> field
+	 * @param version
+	 */
+	void setVersion(String version);
+	
+	/**
+	 * Return the SOLR4 version as a String
+	 * @return
+	 */
+	String getVersion();
 	
 	/**
 	 *  YYYY-MM-DDThh:mm:ssZ; this is the createdDate
@@ -127,7 +138,7 @@ public interface INode {
 	Date getLastEditDate();
 	
     /**
-     * Return <code>properties</code>
+     * Solr expects a {@link Map}
      * @return
      */
 	Map<String,Object> getProperties();
@@ -236,28 +247,6 @@ public interface INode {
 	 * @return
 	 */
 	List<String> listDetails(String language);
-	
-	void addAIR(IAddressableInformationResource air);
-	
-	/**
-	 * Will return an {@link IAddressableInformationResource} inside
-	 * {@link IResult} or <code>null</code> Can include error messages.
-	 * @param airLocator
-	 * @return
-	 */
-	IResult getAIR(String airLocator);
-	
-//	List<String> listAIRLocators();
-	
-	/**
-	 * Internally returns a <code>List<IAddressableInformationResource</code> or
-	 * <code>null</code>; can return error messages
-	 * @return
-	 */
-	IResult listAIRs();
-	
-	void removeAIR(String airLocator);
-	
 	  	  
 	/**
 	 * <p>Used while building, not while modifying after stored.</p>
@@ -356,19 +345,6 @@ public interface INode {
 	 * @return can return <code>null</code>
 	 */
 	List<String> listSuperclassIds();
-	
-	/**
-	 * Does not return <code>null</code>. Can return an empty list
-	 * for the root node
-	 * @return
-	 */
-	List<String> listTransitiveClosure();
-	
-	void setTransitiveClosure(List<String>tc);
-	
-	void addTransitiveClosureLocator(String locator);
-	
-	void removeTransitiveClosureLocator(String locator);
 	  
 	/**
 	 * <p>Used while building, not while modifying after stored.</p>
@@ -390,32 +366,42 @@ public interface INode {
 	 * @return
 	 */
 	boolean getIsPrivate();
+	
+	/**
+	 * Return <code>true</code> if <code>typeLocator</code> is found in 
+	 * this node's <em>transitive closure</em>
+	 * @param typeLocator
+	 * @return
+	 */
+	boolean isA(String typeLocator);
+
 	  
+	////////////////REPLACED BY ACLs
 	/**
 	 * 
 	 * @return does not return <code>null</code>
-	 */
+	 * /
 	List<String> listRestrictionCredentials();
 	  
 	/**
 	 * <p>Used while building, not while modifying after stored.</p>
 	 * <p>To use after node is stored, must pay attention to update methods</p>
 	 * @param userId
-	 */
+	 * /
 	void addRestrictionCredential(String userId);
 	  
 	/**
 	 * <p>Used while building, not while modifying after stored.</p>
 	 * <p>To use after node is stored, must pay attention to update methods</p>
 	 * @param userId
-	 */
+	 * /
 	void removeRestrictionCredential(String userId);
 	  
 	/**
 	 * 
 	 * @param userId
 	 * @return
-	 */
+	 * /
 	boolean containsRestrictionCredentials(String userId);
 	  
 	/**
@@ -447,7 +433,26 @@ public interface INode {
 	 * @return does not return <code>null</code>
 	 */
 	List<String> listPSIValues();
-	  
+	/////////////////////////////
+	// Transitive Closure
+	/////////////////////////////
+	/**
+	 * Does not return <code>null</code>. Can return an empty list
+	 * for the root node
+	 * @return
+	 */
+	List<String> listTransitiveClosure();
+	
+	void setTransitiveClosure(List<String>tc);
+	
+	void addTransitiveClosureLocator(String locator);
+	
+	void removeTransitiveClosureLocator(String locator);
+
+	/////////////////////////////
+	//Tuples
+	/////////////////////////////
+
 	/**
 	 * <p>Used while building, not while modifying after stored.</p>
 	 * <p>To use after node is stored, must pay attention to update methods</p>
@@ -475,5 +480,100 @@ public interface INode {
 	 * @return does not return <code>null</code>
 	 */
 	List<String> listRestrictedTuples();
+	
+	/////////////////////////////
+	//Pivots: special kinds of tuples
+	/////////////////////////////
+	void addPivot(String relationType, String relationLabel,
+			String documentSmallIcon,String targetLocator, String targetLabel, String nodeType);
 	  
+	/**
+	 * <p>Returns all if <code>relationType</code> = <code>null</code></p>
+	 * <p>JSONObject behaves like {@link IRelationStruct}</p>
+	 * @param relationType
+	 * @return
+	 */
+	List<JSONObject> listPivotsByRelationType(String relationType);
+	/////////////////////////////
+	//Graph
+	/////////////////////////////
+	
+	/**
+	 * 
+	 * @param contextLocator
+	 * @param smallIcon
+	 * @param locator
+	 * @param subject
+	 * @param transcluderLocator can be <code>null</code>
+	 */
+	void addChildNode(String contextLocator, String smallIcon, String locator, String subject, String transcluderLocator);
+	
+	/**
+	 * <p>Returns list of childNode objects.<p>
+	 * <p>If <code>contextLocator</code> = <code>null</code>, returns
+	 * all objects</p>
+	 * <p>JSONObjects returned behave according to {@link IChildStruct} keys
+	 * @param contextLocator
+	 * @return
+	 */
+	List<JSONObject> listChildNodes(String contextLocator);
+	
+	void addParentNode(String contextLocator, String smallIcon, String locator, String subject);
+	
+	List<JSONObject> listParentNodes(String contextLocator);
+	
+	/////////////////////////////
+	//ACL
+	/////////////////////////////
+
+	void addACLValue(String value);
+	
+	void removeACLValue(String value);
+	
+	List<String>listACLValues();
+	
+	boolean containsACL(String value);
+	
+	/////////////////////////////
+	//InfoBox
+	// JSONObjects for InfoBoxes behave according to user-specified
+	// microformats
+	/////////////////////////////
+
+	void putInfoBox(String name, String jsonString);
+	
+	JSONObject getInfoBox(String name);
+	
+	void removeInfoBox(String name);
+	
+	JSONObject getInfoBoxes();
+	
+	/////////////////////////////
+	//AIRs
+	// These are different from ordinary label/details
+	// Instead, they are subject/body -- with language concerns
+	//  And, they are versioned
+	/////////////////////////////
+
+	/**
+	 * An AIR has one and only one Subject, though can exist in different languages
+	 * @param subjectString
+	 * @param language
+	 * @param userLocator
+	 */
+	void setSubject(String subjectString, String language, String userLocator);
+	
+	String getSubject(String language);
+	
+	void updateSubject(String updatedSubject, String language, String userLocator, String comment);
+	
+	void setBody(String bodyString, String language, String userLocator);
+	
+	String getBody(String language);
+	
+	void updateBody(String updatedBody, String language, String userLocator, String comment);
+	
+	List<String> listBodyVersions(String language);
+	
+	List<String> listSubjectVersions(String language);
 }

@@ -24,6 +24,7 @@ import org.topicquests.model.api.ITicket;
 import org.topicquests.model.api.node.IAddressableInformationResource;
 import org.topicquests.model.api.node.INode;
 import org.topicquests.model.api.node.ITuple;
+import org.topicquests.model.api.provider.IDataProvider;
 
 /**
  * @author park
@@ -81,6 +82,14 @@ public interface ITopicDataProvider extends IDataProvider {
 	  IResult getNode(String locator, ITicket credentials);
 	  
 	  /**
+	   * Returns a raw {@link INode} as a {@link JSONObject}
+	   * @param locator
+	   * @param credentials
+	   * @return
+	   */
+	  IResult getNodeJSON(String locator, ITicket credentials);
+	  
+	  /**
 	   * Assemble a node view based on the node and its various related nodes
 	   * @param locator
 	   * @param credentials
@@ -97,18 +106,22 @@ public interface ITopicDataProvider extends IDataProvider {
 	  IResult removeNode(String locator);
 
 	  /**
-	   * Put <code>node</code> in the database. Subject it to merge and harvest
+	   * <p>Put <code>node</code> in the database. Subject it to merge and harvest</p>
+	   * <p>Can return an <em>OptimisticLockException</em> error message if version numbers
+	   * are not appropriate.</p>
 	   * @param node
+	 * @param checkVersion TODO
 	   * @return
 	   */
-	  IResult putNode(INode node);
+	  IResult putNode(INode node, boolean checkVersion);
 	  
 	  /**
 	   * Put <code>node</code> in the database. Subject to harvest; no merge performed
 	   * @param node
+	 * @param checkVersion TODO
 	   * @return
 	   */
-	  IResult putNodeNoMerge(INode node);
+	  IResult putNodeNoMerge(INode node, boolean checkVersion);
 	  
 	  
 	  /**
@@ -122,9 +135,10 @@ public interface ITopicDataProvider extends IDataProvider {
 	   * of the original <em>AIR</em> and bump it to the next version number for the new instance.
 	   * Typically, an <em>AIR</em> is versioned for reasons of edit changes to the text it contains.</p>
 	   * @param air
+	 * @param checkVersion TODO
 	   * @return
 	   */
-	  IResult putAIRVersion(IAddressableInformationResource air);
+//	  IResult putAIRVersion(IAddressableInformationResource air, boolean checkVersion);
 	  
 	  /**
 	   * Return a specific <code>version</code> of an {@link IAddressableInformationResource}
@@ -133,7 +147,7 @@ public interface ITopicDataProvider extends IDataProvider {
 	   * @param credentials
 	   * @return
 	   */
-	  IResult getAIRVersion(String airLocator, int version, ITicket credentials);
+//	  IResult getAIRVersion(String airLocator, int version, ITicket credentials);
 	  
 	  /**
 	   * List all version numbers of {@link IAddressableInformationResource} identified by
@@ -142,7 +156,7 @@ public interface ITopicDataProvider extends IDataProvider {
 	   * @param airLocator
 	   * @return
 	   */
-	  IResult listAIRVersions(String airLocator);
+//	  IResult listAIRVersions(String airLocator);
 	  
 	  /**
 	   * <p>If <code>locator</code> is a <em>merged node</em>, then
@@ -155,7 +169,7 @@ public interface ITopicDataProvider extends IDataProvider {
 	  IResult getVirtualNodeIfExists(String locator, ITicket credentials);
 	  
 	  /**
-	   * Returns a Boolean <code>true if there exists an {@link ITuple} of 
+	   * Returns a Boolean <code>true</code> if there exists an {@link ITuple} of 
 	   * <code>relationLocator</code> and
 	   * either a <em>subject</em> or </em>object</em> identified by <code>theLocator</code>
 	   * @param theLocator
@@ -163,6 +177,14 @@ public interface ITopicDataProvider extends IDataProvider {
 	   * @return
 	   */
 	  IResult existsTupleBySubjectOrObjectAndRelation(String theLocator, String relationLocator);
+	  
+	  /**
+	   * Returns a Boolean <code>true</code> if an {@link INode} exists for the given
+	   * <code>locator<?code>
+	   * @param locator
+	   * @return
+	   */
+	  IResult existsNode(String locator);
 
 	  /**
 	   * <p>Tests whether <code>nodeLocator</code> is of type or a subclass of 
@@ -312,9 +334,10 @@ public interface ITopicDataProvider extends IDataProvider {
 	  /**
 	   * 
 	   * @param tuple
+	 * @param checkVersion TODO
 	   * @return
 	   */
-	  IResult putTuple(ITuple tuple);
+	  IResult putTuple(ITuple tuple, boolean checkVersion);
 	  
 	  /**
 	   * Return an <code>ITuple</code> inside an {@link IResult} object or <code>null</code> if not found
@@ -328,9 +351,10 @@ public interface ITopicDataProvider extends IDataProvider {
 	  /**
 	   * Behaves as if to <em>replace</em> <code>node</code>
 	   * @param node
+	 * @param checkVersion TODO
 	   * @return
 	   */
-	  IResult updateNode(INode node);
+	  IResult updateNode(INode node, boolean checkVersion);
 
 	  //////////////////////////////////////////////////
 	  // General query support

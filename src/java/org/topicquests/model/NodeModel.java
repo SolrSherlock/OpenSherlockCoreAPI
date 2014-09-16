@@ -216,7 +216,7 @@ public class NodeModel implements INodeModel {
 				val.add(updatedDetails);
 				n.setProperty(field, val);
 			}
-			return database.updateNode(n);
+			return database.updateNode(n,true);
 		}
 		return result;
 	}
@@ -235,7 +235,7 @@ public class NodeModel implements INodeModel {
 			String v = (String)o;
 			if (!v.equals(newValue)) {
 				node.setProperty(key, newValue);
-				result = database.putNode(node);
+				result = database.putNode(node,true);
 				database.removeFromCache(node.getLocator());
 			} else
 				result = new ResultPojo();
@@ -255,7 +255,7 @@ public class NodeModel implements INodeModel {
 		List<String>values = makeListIfNeeded( myMap.get(key));
 		if (!values.contains(newValue)) {
 			values.add(newValue);
-			result = database.putNode(node);
+			result = database.putNode(node,true);
 			database.removeFromCache(sourceNodeLocator);
 		} else
 			result = new ResultPojo();
@@ -319,13 +319,19 @@ public class NodeModel implements INodeModel {
 			sourceNode.addTuple(tLoc);
 			targetNode.addTuple(tLoc);
 		}
-		IResult x = database.putNode(sourceNode);
+		///////////////////////////////////////////
+		//TODO
+		// WE are now OptimisticLockException sensitive
+		// And it might be possible that we need the
+		// ability to detect that
+		///////////////////////////////////////////
+		IResult x = database.putNode(sourceNode,true);
 		if (x.hasError())
 			result.addErrorString(x.getErrorString());
-		x = database.putNode(targetNode);
+		x = database.putNode(targetNode,true);
 		if (x.hasError())
 			result.addErrorString(x.getErrorString());
-		database.putNode(t);
+		database.putNode(t,true);
 		if (x.hasError())
 			result.addErrorString(x.getErrorString());
 		log.logDebug("NodeModel.relateNewNodes "+sourceNode.getLocator()+" "+targetNode.getLocator()+" "+t.getLocator()+" | "+result.getErrorString());
@@ -358,13 +364,13 @@ public class NodeModel implements INodeModel {
 			sourceNode.addTuple(tLoc);
 			targetNode.addTuple(tLoc);
 		}
-		IResult x = database.putNode(sourceNode);
+		IResult x = database.putNode(sourceNode,true);
 		if (x.hasError())
 			result.addErrorString(x.getErrorString());
-		x = database.putNode(targetNode);
+		x = database.putNode(targetNode,true);
 		if (x.hasError())
 			result.addErrorString(x.getErrorString());
-		database.putNode(t);
+		database.putNode(t,true);
 		if (x.hasError())
 			result.addErrorString(x.getErrorString());
 		log.logDebug("NodeModel.relateNewNodes "+sourceNode.getLocator()+" "+targetNode.getLocator()+" "+t.getLocator()+" | "+result.getErrorString());
@@ -456,7 +462,7 @@ public class NodeModel implements INodeModel {
 		}
 		
 	}
-
+/*
 	@Override
 	public IAddressableInformationResource newAIR(String locator,
 			String subject, String body, String language, String userId,
@@ -473,6 +479,18 @@ public class NodeModel implements INodeModel {
 		result.setDate(d); 
 		result.setLastEditDate(d);
 		return result;
+	}
+*/
+	@Override
+	public IResult addSuperClass(INode node, String superClassLocator) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IResult setNodeType(INode node, String typeLocator) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

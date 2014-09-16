@@ -27,6 +27,14 @@ import org.topicquests.model.api.node.ITuple;
 public interface ITupleQuery {
 	
 	/**
+	 * Find a {@link ITuple} by its unique <code>signature</code>
+	 * @param signature
+	 * @param credentials
+	 * @return can return <code>null</code> inside {@link IResult}
+	 */
+	IResult getTupleBySignature(String signature, ITicket credentials);
+	
+	/**
 	 * <p>List all available {@link ITuple}s which are instances of <code>predType</code>
 	 * and have <code>obj</code> as either the subject or object</p>
 	 * @param predType

@@ -53,38 +53,34 @@ public interface ITopicQuestsOntology {
 	
 	//////////////////////////////////////
 	// CLASS TYPES
-	// Code indenting indicates subclass relations
 	//////////////////////////////////////
 	/**
 	 * Provides a source legend for bootstrap properties
 	 */
 	CORE_LEGEND 									= "CoreLegend",
-	//////////////////////////////////////////
-	// TYPOLOGY starts here
-	//////////////////////////////////////////
-	TYPE_TYPE									= "TypeType",
-			 //   	SUBJECT_MAP_TYPE 							= "SubjectMapType",
+ //   	SUBJECT_MAP_TYPE 							= "SubjectMapType",
+	    /**
+	     * Internal SubjectProxy types, subclasses of which are NAME_TYPE_NODE & ????
+	     */
+//	    SUBJECT_PROXY_TYPE 							= "SubjectProxyType",
+//	    	AIR_PROXY_TYPE 							= "AirProxyType",
 		    /**
-		     * Internal SubjectProxy types, subclasses of which are NAME_TYPE_NODE & ????
+		     * Creates a SubjectProxy that aggregates merged SubjectProxy objects
 		     */
-//		    SUBJECT_PROXY_TYPE 							= "SubjectProxyType",
-//		    	AIR_PROXY_TYPE 							= "AirProxyType",
-			    /**
-			     * Creates a SubjectProxy that aggregates merged SubjectProxy objects
-			     */
-//			    VIRTUAL_PROXY_TYPE 						= "VirtualProxyType",
-			    /**
-			     * Creates a SubjectProxy that links to a SubjectProxy in a different database
-			     */
-//			    REMOTE_PROXY_TYPE 						= "RemoteProxyType",
+//		    VIRTUAL_PROXY_TYPE 						= "VirtualProxyType",
+		    /**
+		     * Creates a SubjectProxy that links to a SubjectProxy in a different database
+		     */
+//		    REMOTE_PROXY_TYPE 						= "RemoteProxyType",
+		TYPE_TYPE									= "TypeType",
 		
 	    CLASS_TYPE 									= "ClassType",
 	    	//needed in export of a tuple
 	    	NODE_TYPE								= "NodeType",
-	    		AIR_TYPE							= "AirType",
-	    		GRAPH_TYPE							= "GraphType",
+//	    	TUPLE_TYPE								= "TypleType",
+	    	GRAPH_TYPE								= "GraphType",
 	    	//needed in merge and export of a tuple
-	    		VIRTUAL_NODE_TYPE					= "VirtualNodeType",
+	    	VIRTUAL_NODE_TYPE						= "VirtualNodeType",
 	    ONTOLOGY_TYPE 								= "OntologyType",
 	
 	    RULE_TYPE 									= "RuleType",
@@ -92,21 +88,6 @@ public interface ITopicQuestsOntology {
 	    RESOURCE_TYPE 								= "ResourceType",
 	    	WEB_RESOURCE_TYPE						= "WebResourceType",
 	    RELATION_TYPE 								= "RelationType",
-	    	    ///////////////////////
-	    	    // Assertions
-	    	    ///////////////////////
-	    	    ASSERTION_TYPE 								= "AssertionType",
-	    			MERGE_ASSERTION_TYPE 					= "MergeAssertionType",
-	    			POSSIBLE_MERGE_ASSERTIONTYPE			= "PossibleMergeAssertionType",
-	    			UNMERGE_ASSERTION_TYPE					= "UnMergeAssertionType",
-	    			
-	    			//ROLE_BASED_RELATION_TYPE 				= "RoleBasedRelationType",
-	    			//LINGUISTIC_RELATION_TYPE 				= "linguisticRelationType",
-	    			//SIMPLE_ASSERTION_TYPE 					= "SimpleAssertionType",
-	    		    /**
-	    		     * Predefines as subclass of LEGEND_TYPE: user must subclass which assertion type
-	    		     */
-	    		    //LEGEND_ASSERTION_TYPE 					= "LegendAssertionType",
 	    ROLE_TYPE 									= "RoleType",
 	    USER_TYPE 									= "UserType",
 	    	UNKNOWN_USER_TYPE						= "UnknownUserType",
@@ -127,48 +108,75 @@ public interface ITopicQuestsOntology {
 	    	MERGE_RULE_SCOPE_TYPE					= "MergeRuleScopeType",
 	    	THEME_TYPE								= "ThemeType",
 
+	    ///////////////////////
+	    // Assertions
+	    ///////////////////////
+	    ASSERTION_TYPE 								= "AssertionType",
+			MERGE_ASSERTION_TYPE 					= "MergeAssertionType",
+			POSSIBLE_MERGE_ASSERTIONTYPE			= "PossibleMergeAssertionType",
+			UNMERGE_ASSERTION_TYPE					= "UnMergeAssertionType",
+			
+			ROLE_BASED_RELATION_TYPE 				= "RoleBasedRelationType",
+			LINGUISTIC_RELATION_TYPE 				= "linguisticRelationType",
+			SIMPLE_ASSERTION_TYPE 					= "SimpleAssertionType",
+		    /**
+		     * Predefines as subclass of LEGEND_TYPE: user must subclass which assertion type
+		     */
+		    LEGEND_ASSERTION_TYPE 					= "LegendAssertionType",
 	    
-		//////////////////////////////////////
-		// PROPERTY TYPES
-		//////////////////////////////////////
 	    PROPERTY_TYPE 								= "PropertyType",
-	    
-	    //////////////////////////////////
-	    // NODE MODELING
-	    //////////////////////////////////
-	    	// Identity
-	     	//////////////////////////////
-			/**
-			 * The official, unique identifier for any proxy (node)
-			 */
-			LOCATOR_PROPERTY							= "locator",
-		    /**
-		     * Predefines as subclass of LEGEND_TYPE and PROPERTY_TYPE
-		     */
-		    //LEGEND_PROPERTY_TYPE 						= "LegendPropertyType", //later
-		    /**
-		     * In theory, used to identify foreign legends for imported resources
-		     */
-		    //DEFINING_LEGEND_PROPERTY_TYPE 				= "DefiningLegendPropertyType", //later
-
-	    	//////////////////////////////
-	    	// TAXONOMY
-	    	//////////////////////////////
-	    
-		    SUBCLASS_OF_PROPERTY_TYPE					= "subOf",
-		    INSTANCE_OF_PROPERTY_TYPE					= "instanceOf",
+			//////////////////////////////////////
+			// PROPERTY TYPES
+			//////////////////////////////////////
+		    SUBCLASS_OF_PROPERTY_TYPE					= "sbOf",
+	//	    HAS_SUBCLASSES_PROPERTY_TYPE				= "HasSubclasses",
+		    INSTANCE_OF_PROPERTY_TYPE					= "inOf",
+	//	    HAS_INSTANCES_PROPERTY_TYPE					= "HasInstances",
 		    /**
 		     * A multi-valued property which is all the parents of this node
 		     */
-		    TRANSITIVE_CLOSURE_PROPERTY_TYPE			= "TransitiveClosureListPropertyType",
+		    TRANSITIVE_CLOSURE_PROPERTY_TYPE			= "trCl",
+		    /**
+		     * Predefines as subclass of LEGEND_TYPE and PROPERTY_TYPE
+		     */
+		    LEGEND_PROPERTY_TYPE 						= "LegendPropertyType", //later
+		    /**
+		     * In theory, used to identify foreign legends for imported resources
+		     */
+		    DEFINING_LEGEND_PROPERTY_TYPE 				= "DefiningLegendPropertyType", //later
+		    		
+		//    VERSION_PROPERTY_TYPE 						= "VersionPropertyType",
+		    // FOR ONTOLOGIES
+		    ONTOLOGY_OBJECT_PROPERTY_TYPE				= "OntologyObjectPropertyType",
+		    	ONTOLOGY_INVERSE_FUNDTIONAL_PROPERTY_TYPE	= "OntologyInverseFunctionalPropertyType",
+		    ONTOLOGY_FUNCTIONAL_PROPERTY_TYPE			= "OntologyFunctionalPropertyType",
+		    ONTOLOGY_DATATYPE_PROPERTY_TYPE				= "OntologyDatatypePropertyType",
+		    ONTOLOGY_ANNOTATION_PROPERTY_TYPE			= "OntologyAnnotationPropertyType",
+		    DOMAIN_PROPERTY_TYPE						= "DomainPropertyType",
+		    RANGE_PROPERTY_TYPE							= "RangePropertyType",
+		    EQUIVALENT_TO_PROPERTY_TYPE					= "EquivalentToPropertyType",
+		    INVERSE_OF_PROPERTY_TYPE					= "InverseOfPropertyType",
 
-			AIR_LIST_PROPERTY_TYPE						= "AirListPropertyType",
+		    VERSION										= "_ver",
+		    /**
+		     * List of String values (integers) of version numbers available for an AIRProxy SubjectProxy
+		     */
+		//	VERSION_LIST_PROPERTY 						= "VersionListPropertyType",
 			
-			/** used for unrestricted tuples -- all nodes are public */
-			TUPLE_LIST_PROPERTY							= "TupleListPropertyType",
-			/** used where any node in the tuple is not public */
-			TUPLE_LIST_PROPERTY_RESTRICTED				= "RestrictedTupleListPropertyType",
-
+		    // can't see where this is used
+			TRANSCLUDED_ROOT_PROXY_PROPERTY 			= "TranscludedRootProxyProperty", //????
+		   
+			TRANSCLUDE_LIST_PROPERTY					= "tclL",
+			/**
+			 * Added to Merge Assertion Node
+			 */
+			MERGE_REASON_RULES_PROPERTY					= "mrgRnRlL",
+			
+			/** each node can have one and only one merge tuple */
+			MERGE_TUPLE_PROPERTY						= "mrgT",
+			MERGE_LIST_PROPERTY							= "mergeList",
+			/** some nodes which represent web pages might be href'd by other pages */
+			BACKLINK_LIST_PROPERTY						= "bklkL",
 		    /**
 		     * If a proxy has a RestrictionProperty, then it might be:
 		     * <ul>
@@ -177,45 +185,18 @@ public interface ITopicQuestsOntology {
 		     * <li>...</li>
 		     * </ul>
 		     */
-		    RESTRICTION_PROPERTY_TYPE 					= "RestrictionsPropertyType",
+		    RESTRICTION_PROPERTY_TYPE 					= "rstns",
+		
+		    //from IConceptualGraph
+		    GRAPH_CONCEPT_LIST_PROPERTY_TYPE			= "graphconlist",
+		    GRAPH_RELATION_LIST_PROPERTY_TYPE			= "graphrelnlist",
+		    GRAPH_PARENT_GRAPH_PROPERTY_TYPE			= "graphparent",
+		
+		    /** list of symbols of Scope topics */
+		    SCOPE_LIST_PROPERTY_TYPE 					= "scpL",
 		    
-		    /**
-		     * Published Subject Indicators
-		     */
 		    PSI_PROPERTY_TYPE 							= "psi",
 
-		    RESOURCE_URL_PROPERTY			 			= "resourceURL",
-			LARGE_IMAGE_PATH							= "largeIcon",
-			SMALL_IMAGE_PATH							= "smallIcon",
-			
-			CREATOR_ID_PROPERTY							= "creatorId",
-			
-			//Date
-			CREATED_DATE_PROPERTY						= "createdDate",
-			LAST_EDIT_DATE_PROPERTY						= "lastEditDate",
-			//boolean
-			IS_PRIVATE_PROPERTY							= "isPrivate",
-			IS_VIRTUAL_PROXY							= "isVirtProxy",
-			
-		    ///////////////////////////////////
-			// Merge support
-			//////////////////////////////////
-			/**
-			 * Added to Merge Assertion Node
-			 */
-			MERGE_REASON_RULES_PROPERTY					= "mergeReasonRules",
-			
-			/** each node can have one and only one merge tuple */
-			MERGE_TUPLE_PROPERTY						= "mergetuple",
-			MERGE_LIST_PROPERTY							= "mergeList",
-			//////////////////////////////////
-			// NODE CONTENT
-			//////////////////////////////////
-			/** some nodes which represent web pages might be href'd by other pages */
-			BACKLINK_LIST_PROPERTY						= "backlinks",
-				//////////////////////////////////
-				// Text Modeling
-				//////////////////////////////////
 		    /**
 		     * Label is e.g. the IBIS statement in a node
 		     */
@@ -229,71 +210,62 @@ public interface ITopicQuestsOntology {
 			 * Details are like a description except just one per node
 			 */
 			DETAILS_PROPERTY							= "details",
+			
+			/**
+			 * The official, unique identifier for any proxy (node)
+			 */
+			LOCATOR_PROPERTY							= "lox",
 
-				//////////////////////////////////
-				// AIR Modeling
-				// AIR Subject reuses Label property
-				// AIR Body reuses Details property
-				//////////////////////////////////
-		    VERSION_PROPERTY_TYPE						= "VersionPropertyType",
-		    
-		    
-		    //AIR_BODY_PROPERTY_TYPE					= "AirBodyPropertyType",
-		    //AIR_SUBJECT_PROPERTY_TYPE					= "AirSubjectPropertyType",
-		    /** An AIR must model its <em>host</em> topic, the context of which
-		     * determines parents, hosts, and purple numbers. That entails
-		     * a {@link java.util.Map} object hosted at the AIR_MODEL_PROPERTY_TYPE
-		     */
-		    AIR_MODEL_PROPERTY_TYPE						= "AirModelPropertyType",
-		    	AIR_PARENT_PROPERTY_TYPE					= "AirParentPropertyType",
-		    	AIR_PURPLE_NUMBER_PROPERTY_TYPE				= "PurpleNumberPropertyType",
-		    	AIR_HOST_PROPERTY_TYPE						= "AirHostPropertyType",
-		    		
-		    // can't see where this is used
-			//TRANSCLUDED_ROOT_PROXY_PROPERTY 			= "TranscludedRootProxyProperty", //????
-		   
-			//TRANSCLUDE_LIST_PROPERTY					= "transcludes",
+			RESOURCE_URL_PROPERTY			 			= "url",
 			
 			////////////////////////////
-			//Tuple Support
+			//Dealing with Tuples
 			////////////////////////////
-			TUPLE_OBJECT_PROPERTY						= "TupleObjectPropertyType",
-			TUPLE_OBJECT_TYPE_PROPERTY					= "TupleObjectTypePropertyType",
-			TUPLE_SUBJECT_PROPERTY						= "TupleSubjectPropertyType",
-			TUPLE_SUBJECT_TYPE_PROPERTY					= "TupleSubjectTypePropertyType",
-			TUPLE_IS_TRANSCLUDE_PROPERTY				= "IsTranscludePropertyType",
-			TUPLE_SUBJECT_ROLE_PROPERTY					= "TupleSubjectRolePropertyType",
-			TUPLE_OBJECT_ROLE_PROPERTY					= "TypleObjectRolePropertyType",
-			//Theme might be redundant with scope/theme
-			TUPLE_THEME_PROPERTY						= "TupleThemePropertyType",
-			TUPLE_SIGNATURE_PROPERTY					= "TupleSignaturePropertyType",
-		    /** list of symbols of Scope topics */
-		    SCOPE_LIST_PROPERTY_TYPE 					= "TupleScopeListPropertyType",
-		    
-		    ///////////////////////////////////
-			// Ontology Modeling, generally used for importing ontologies
-			//////////////////////////////////
-		    ONTOLOGY_OBJECT_PROPERTY_TYPE				= "OntologyObjectPropertyType",
-		    	ONTOLOGY_INVERSE_FUNDTIONAL_PROPERTY_TYPE	= "OntologyInverseFunctionalPropertyType",
-		    ONTOLOGY_FUNCTIONAL_PROPERTY_TYPE			= "OntologyFunctionalPropertyType",
-		    ONTOLOGY_DATATYPE_PROPERTY_TYPE				= "OntologyDatatypePropertyType",
-		    ONTOLOGY_ANNOTATION_PROPERTY_TYPE			= "OntologyAnnotationPropertyType",
-		    DOMAIN_PROPERTY_TYPE						= "DomainPropertyType",
-		    RANGE_PROPERTY_TYPE							= "RangePropertyType",
-		    EQUIVALENT_TO_PROPERTY_TYPE					= "EquivalentToPropertyType",
-		    INVERSE_OF_PROPERTY_TYPE					= "InverseOfPropertyType",
-
+			/** used for unrestricted tuples -- all nodes are public */
+			TUPLE_LIST_PROPERTY							= "tpL",
+			/** used where any node in the tuple is not public */
+			TUPLE_LIST_PROPERTY_RESTRICTED				= "tpLr",
+			//used for pivots
+			PIVOT_LIST_PROPERTY							= "pvL",
+			TUPLE_OBJECT_PROPERTY						= "tupO",
+			TUPLE_OBJECT_TYPE_PROPERTY					= "tupOT",
+			TUPLE_SUBJECT_PROPERTY						= "tupS",
+			TUPLE_SUBJECT_TYPE_PROPERTY					= "tupST",
+			TUPLE_IS_TRANSCLUDE_PROPERTY				= "isTrcld",
+			TUPLE_SUBJECT_ROLE_PROPERTY					= "tupSR",
+			TUPLE_OBJECT_ROLE_PROPERTY					= "tupOR",
+			TUPLE_THEME_PROPERTY						= "tupTh",
+			TUPLE_SIGNATURE_PROPERTY					= "tupSig",
 			
-			///////////////////////////////////
-		    //from IConceptualGraph  not used anytime soon
-		    ///////////////////////////////////
-		    GRAPH_CONCEPT_LIST_PROPERTY_TYPE			= "graphconlist",
-		    GRAPH_RELATION_LIST_PROPERTY_TYPE			= "graphrelnlist",
-		    GRAPH_PARENT_GRAPH_PROPERTY_TYPE			= "graphparent";
-		
-		    
+			LARGE_IMAGE_PATH							= "lIco",
+			SMALL_IMAGE_PATH							= "sIco",
 			
-
+			CREATOR_ID_PROPERTY							= "crtr",
 			
+			//Date
+			CREATED_DATE_PROPERTY						= "crDt",
+			LAST_EDIT_DATE_PROPERTY						= "lEdDt",
+			//boolean
+			IS_PRIVATE_PROPERTY							= "isPrv",
+			IS_VIRTUAL_PROXY							= "isVirtProxy",
 	  
+	
+			CONVERSATION_NODE_TYPE						= "conTyp",
+			CHILD_NODE_LIST							 	= "cNL",
+			PARENT_NODE_LIST							= "pNL",
+			CONVERSATION_ROOT							= "conRt",
+
+			SORT_DATE									= "srtDt",
+			//used for infoBoxes
+			INFO_BOX_LIST_PROPERTY						="infL",
+			//cardinality of tuples stored for sorting (e.g. popular tags)
+			TUPLE_COUNT									= "tpC",
+			///////////////////////////
+			// Air properties
+			///////////////////////////
+			AIR_SUBJECT_PROPERTY						= "subj",
+			AIR_SUBJECT_VERSION_PROPERTY				= "subjv",
+			AIR_BODY_PROPERTY							= "body",
+			AIR_BODY_VERSION_PROPERTY					= "bodyv",
+			RELATION_WEIGHT								= "relWt";
 }
