@@ -101,16 +101,25 @@ public interface ITopicDataProvider extends IDataProvider {
 	   * <p>Remove a node from the database</p>
 	   * <p>This is used for all nodes and tuples</p>
 	   * @param locator
+	   * @param credentials
 	   * @return
 	   */
-	  IResult removeNode(String locator);
+	  IResult removeNode(String locator, ITicket credentials);
+	  
+	  /**
+	   * Remove <code>node</code>
+	   * @param node
+	   * @param credentials
+	   * @return
+	   */
+	  IResult removeNode(INode node, ITicket credentials);
 
 	  /**
 	   * <p>Put <code>node</code> in the database. Subject it to merge and harvest</p>
 	   * <p>Can return an <em>OptimisticLockException</em> error message if version numbers
 	   * are not appropriate.</p>
 	   * @param node
-	 * @param checkVersion TODO
+	   * @param checkVersion TODO
 	   * @return
 	   */
 	  IResult putNode(INode node, boolean checkVersion);
@@ -159,14 +168,14 @@ public interface ITopicDataProvider extends IDataProvider {
 //	  IResult listAIRVersions(String airLocator);
 	  
 	  /**
-	   * <p>If <code>locator</code> is a <em>merged node</em>, then
+	   * <p>If <code>node</code> is a <em>merged node</em>, then
 	   * return the <em>virtual node</em> which represents it. Otherwise,
-	   * return the node identified by <code>locator</code>
-	   * @param locator
+	   * return <code>null</code> inside {@link IResult}
+	   * @param node
 	   * @param credentials
 	   * @return
 	   */
-	  IResult getVirtualNodeIfExists(String locator, ITicket credentials);
+	  IResult getVirtualNodeIfExists(INode node, ITicket credentials);
 	  
 	  /**
 	   * Returns a Boolean <code>true</code> if there exists an {@link ITuple} of 

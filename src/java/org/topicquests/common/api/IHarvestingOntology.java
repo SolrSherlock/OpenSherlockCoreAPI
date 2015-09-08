@@ -24,11 +24,12 @@ public interface IHarvestingOntology {
 	 * Properties (fields)
 	 */
 	public static final String
-			CLUSTER_WEIGHT		= "clusterWeight", //implemented as a <code>double</code> field
+			CLUSTER_WEIGHT				= "clusterWeight", //implemented as a <code>double</code> field
 			/** resource topics as members of a cluster node */
-			CLUSTER_MEMBER_LIST = "clusterMembers",
+			CLUSTER_MEMBER_LIST 		= "clusterMembers",
 			/** cluster nodes in a cluster */
-			CLUSTER_NODE_MEMBER_LIST = "clusterNodeMembers";
+			CLUSTER_NODE_MEMBER_LIST 	= "clusterNodeMembers",
+			CLUSTER_QUERY				= "clusterQuery";
 			
 	
 	/**
@@ -46,6 +47,8 @@ public interface IHarvestingOntology {
 			CARROT2_CLUSTERED_NODE_TYPE	= "Carrot2ClusteredNodeType",
 			/** Carrot2 as a user agent*/
 			CARROT2_AGENT_USER			= "Carrot2AgentUser",
+			/** harvest node type */
+			HARVEST_NODE_TYPE			= "HarvestNodeType",
 			/** Tuples, when crafted during agent-based harvesting,
 			 * need this scope type; it intends to capture the full
 			 * measure of provenance of the <em>assertion</em> made

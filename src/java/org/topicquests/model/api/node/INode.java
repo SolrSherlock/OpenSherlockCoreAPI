@@ -18,7 +18,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Date;
 
-import org.json.simple.JSONObject;
+import org.topicquests.model.api.node.IRelationStruct;
+import org.topicquests.model.api.node.IChildStruct;
+//import org.json.simple.JSONObject;
 import org.topicquests.common.api.IResult;
 
 /**
@@ -119,6 +121,15 @@ public interface INode {
 	void setDate(Date date);
 	
 	/**
+	 * Internally, we need to set two dates when creating a node.
+	 * One is the creation date, the other is lastEdit date. By
+	 * allowing for a single {@link Date} to {@link String} conversion
+	 * we save cycles.
+	 * @param date
+	 */
+	void setDate(String date);
+	
+	/**
 	 * Return createdDate
 	 * @return
 	 */
@@ -131,6 +142,7 @@ public interface INode {
 	 */
 	void setLastEditDate(Date date);
 	
+	void setLastEditDate(String date);
 	/**
 	 * Return the lastEditDate
 	 * @return
@@ -154,6 +166,19 @@ public interface INode {
 	 * @return
 	 */
 	String toXML();
+	
+	//////////////////////////////////////////////
+	//At the moment, it's not clear what "federated" means:
+	// We can easily tell if the node has been merged by 
+	// testing its mergeTuple property
+	//////////////////////////////////////////////
+	/**
+	 * If a node has been federated, set to <code>true</code>; default return if <code>false</code>
+	 * @param t
+	 */
+	void setIsFederated(boolean t);
+	
+	boolean getIsFederated();
 	
 	/**
 	 * <p>Used while building, not while modifying after stored.</p>
@@ -333,6 +358,15 @@ public interface INode {
 	 * @param value
 	 */
 	void addPropertyValue(String key, String value);
+	
+	/**
+	 * <p>If property is still a String, it is removed entirely</p>
+	 * <p>If it is a list, value is removed from the list.</p>
+	 * @param key
+	 * @param value
+	 * @return
+	 */
+	boolean removePropertyValue(String key, String value);
 	  
 	/**
 	 * Returns one of <code>String</code> or <code>List<String></code>
@@ -366,6 +400,23 @@ public interface INode {
 	 * @return
 	 */
 	boolean getIsPrivate();
+	
+	/**
+	 * <p>Intended thus:
+	 * <li><code>t</code> = <code>true</code> only in the case where
+	 * a node was set to <code>false</code> before</li>
+	 * <li><code>t</code> = <code>false</code> to mean that this node
+	 * has been <em>deleted</code></li>
+	 * </p>
+	 * @param t
+	 */
+	void setIsLive(boolean t);
+	
+	/**
+	 * Defaults <code>true</code> if the value has not been set.
+	 * @return
+	 */
+	boolean getIsLive();
 	
 	/**
 	 * Return <code>true</code> if <code>typeLocator</code> is found in 
@@ -457,43 +508,67 @@ public interface INode {
 	 * <p>Used while building, not while modifying after stored.</p>
 	 * <p>To use after node is stored, must pay attention to update methods</p>
 	 * Add an unrestricted {@link ITuple} to this node
-	 * @param tupleLocator
+	 * @param relationTypeLocator TODO
+	 * @param relationLocator TODO
+	 * @param relationLabel TODO
+	 * @param targetSmallIcon TODO
+	 * @param targetLocator TODO
+	 * @param targetLabel TODO
+	 * @param sourceOrTarget "t" if targetNode is the target in the relation, "s" otherwise
+	 * @param transcluderId can be <code>null</code>
 	 */
-	void addTuple(String tupleLocator);
+	void addRelation(String relationTypeLocator,  String relationLocator, String relationLabel, String targetSmallIcon, 
+			String targetLocator, String targetLabel, String nodeType, String sourceOrTarget);
 	  
 	/**
 	 * <p>Used while building, not while modifying after stored.</p>
 	 * <p>To use after node is stored, must pay attention to update methods</p>
 	 * Add a restricted (not public) {@link ITuple} to this node
-	 * @param tupleLocator
+	 * @param relationTypeLocator TODO
+	 * @param relationLocator TODO
+	 * @param relationLabel TODO
+	 * @param targetSmallIcon TODO
+	 * @param targetLocator TODO
+	 * @param targetLabel TODO
+	 * @param sourceOrTarget TODO
+	 * @param transcluderId TODO
 	 */
-	void addRestrictedTuple(String tupleLocator);
+	void addRestrictedRelation(String relationTypeLocator, String relationLocator, String relationLabel, 
+			String targetSmallIcon, String targetLocator, String targetLabel, String nodeType, String sourceOrTarget);
 	  
 	/**
-	 * List tuples linked to this node which are unrestricted
+	 * List tuples linked to this node which are unrestricted: returns JSON
+	 * String representation of {@link IRelationStruct}
+	 * @param relationType if <code>null</code>, returns all relations as JSON strings
 	 * @return does not return <code>null</code>
 	 */
-	List<String> listTuples();
+	List<String> listRelationsByRelationType(String relationType);
 	  
 	/**
 	 * List tuples linked to this node which are restricted (not public)
+	 * @param relationType if <code>null</code>, returns all relations
 	 * @return does not return <code>null</code>
 	 */
-	List<String> listRestrictedTuples();
+	List<String> listRestrictedRelationsByRelationType(String relationType);
 	
 	/////////////////////////////
 	//Pivots: special kinds of tuples
 	/////////////////////////////
-	void addPivot(String relationType, String relationLabel,
-			String documentSmallIcon,String targetLocator, String targetLabel, String nodeType);
+	void addPivot(String relationTypeLocator, String relationLocator,
+			String relationLabel,String documentSmallIcon, String targetLocator, 
+			String targetLabel, String nodeType, String sourceOrTarget);
 	  
+	void addRestrictedPivot(String relationTypeLocator, String relationLocator,
+			String relationLabel,String documentSmallIcon, String targetLocator, String targetLabel, String nodeType, String sourceOrTarget);
 	/**
 	 * <p>Returns all if <code>relationType</code> = <code>null</code></p>
 	 * <p>JSONObject behaves like {@link IRelationStruct}</p>
 	 * @param relationType
-	 * @return
+	 * @return returns a list of strings which are JSON representatinos of {@link IRelationStruct}
 	 */
-	List<JSONObject> listPivotsByRelationType(String relationType);
+	List<String> listPivotsByRelationType(String relationType);
+	
+	List<String> listRestrictedPivotsByRelationType(String relationType);
 	/////////////////////////////
 	//Graph
 	/////////////////////////////
@@ -513,14 +588,19 @@ public interface INode {
 	 * <p>If <code>contextLocator</code> = <code>null</code>, returns
 	 * all objects</p>
 	 * <p>JSONObjects returned behave according to {@link IChildStruct} keys
-	 * @param contextLocator
-	 * @return
+	 * @param contextLocator <code>null</code> means list all child nodes
+	 * @return a list of JSON strings which are representations of {@link IChildStruct}
 	 */
-	List<JSONObject> listChildNodes(String contextLocator);
+	List<String> listChildNodes(String contextLocator);
 	
 	void addParentNode(String contextLocator, String smallIcon, String locator, String subject);
 	
-	List<JSONObject> listParentNodes(String contextLocator);
+	/**
+	 * Return list of parentNode objects
+	 * @param contextLocator <code>null</code> means return all parent nodes
+	 * @return a list of JSON strings which are representations of {@link IChildStruct}
+	 */
+	List<String> listParentNodes(String contextLocator);
 	
 	/////////////////////////////
 	//ACL
@@ -540,13 +620,22 @@ public interface INode {
 	// microformats
 	/////////////////////////////
 
-	void putInfoBox(String name, String jsonString);
+	void putInfoBox(IInfoBox infoBox);
 	
-	JSONObject getInfoBox(String name);
+	/**
+	 * Returns a JSONString representation of an infobox
+	 * @param name
+	 * @return can return <code>null</code>
+	 */
+	String getInfoBox(String name);
 	
 	void removeInfoBox(String name);
 	
-	JSONObject getInfoBoxes();
+	/**
+	 * Return the list of all IInfoBox JSON objects
+	 * @return
+	 */
+	List<String> listInfoBoxes();
 	
 	/////////////////////////////
 	//AIRs

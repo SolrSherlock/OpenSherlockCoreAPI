@@ -104,12 +104,13 @@ public class Environment implements IEnvironment {
 	 * Available to extensions if needed
 	 */
 	public void bootstrap() {
-		CoreBootstrap cbs = new CoreBootstrap(database);
+		//Bootstraps handled by others
+/**		CoreBootstrap cbs = new CoreBootstrap(database);
 		cbs.bootstrap();
 		BiblioBootstrap bbs = new BiblioBootstrap(database);
 		bbs.bootstrap();
 		RelationsBootstrap rbs = new RelationsBootstrap(database);
-		rbs.bootstrap();
+		rbs.bootstrap(); */
 	}
 	
 	@Override

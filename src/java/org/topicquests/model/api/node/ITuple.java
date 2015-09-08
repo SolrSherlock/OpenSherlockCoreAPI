@@ -32,6 +32,8 @@ import java.util.Map;
  * <p>Tuples represent virtually everything except taxonomic/partonomic relations, such as
  * tree structures in IBIS conversations, any other graph-type relations which include
  * all associations in a topic map</p>
+ * <p>In the past, a tuple had a <em>signature</em> which made it <em>content-addressable</em>.
+ * Now, the <em>locator</em> <b>is</b> the <em>signature</em></p>
  */
 public interface ITuple extends INode {
 	
@@ -141,13 +143,13 @@ public interface ITuple extends INode {
 	 * <p>It is intended to be used on tuples which link nodes</p>
 	 * @param signature
 	 */
-	void setSignature(String signature);
+//	void setSignature(String signature);
 	
 	/**
 	 * Return this tuple's signature
 	 * @return can return <code>null</code>
 	 */
-	String getSignature();
+//	String getSignature();
 	
 	/**
 	 * Utility

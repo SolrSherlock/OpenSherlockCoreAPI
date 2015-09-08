@@ -22,8 +22,12 @@ package org.topicquests.common.api;
 public interface ISocialLegend {
 	//CLASSES
 	public static final String
-		BOOKMARK_TYPE			= "BookmarkType",
-		TAG_TYPE				= "TagType",
-		ANNOTATION_TYPE			= "AnnotationType";
+//		BOOKMARK_TYPE			= "BookmarkType", defined in INodeTypes
+//		TAG_TYPE				= "TagType", defined in INodeTypes
+		ANNOTATION_TYPE			= "AnnotationType",
+		EMAIL_TYPE				= "EmailType",
+		CHAT_TYPE				= "ChatType",
+		TWEET_TYPE				= "TweetType",
+		FORUM_TYPE				= "ForumType";
 		
 }

@@ -22,20 +22,30 @@ package org.topicquests.common.api;
 public interface IBiblioLegend {
 	//CLASSES
 	public static final String
-		PUBLICATION_TYPE			= "PublicationType",
-		JOURNAL_PUBLICATION_TYPE	= "JournalPublicationType",
-		BOOK_PUBLICATION_TYPE		= "BookPublicationType",
-		BLOG_PUBLICATION_TYPE		= "BlogPublicationType",
-		WIKI_PUBLICATION_TYPE		= "WikiPublicationType",
-		WEBPAGE_PUBLICATION_TYPE	= "WebpagePublicationType",
-		NEWSPAPER_PUBLICATION_TYPE	= "NewspaperPublicationType",
-		THESIS_PUBLICATION_TYPE		= "ThesisPublicationType",
-		DATABASE_PUBLICATION_TYPE	= "DatabasePublicationType",
-		REPORT_PUBLICATION_TYPE		= "ReportPublicationType",
-		PATENT_PUBLICATION_TYPE		= "PatentPublicationType",
-		OTHER_PUBLICATION_TYPE		= "OtherPublicationType",
-		MICROBLOG_PUBLICATION_TYPE	= "MicroblogPublicationType",
-		ONTOLOGY_PUBLICATION_TYPE	= "OntologyPublicationType";
+		PUBLICATION_TYPE					= "PublicationType",
+			JOURNAL_PUBLICATION_TYPE		= "JournalPublicationType",
+					COMPARATIVE_STUDY_TYPE	= "ComparativeStudyPublicationType",
+					CASE_REPORTS_TYPE		= "CaseReportsPublicationType",
+					CLINICAL_TRIAL_TYPE		= "Clinical_TrialPublicationType",
+					ENGLISH_ABSTRACT_TYPE	= "EnglishAbstractPublicationType",
+					EVALUATION_STUDY_TYPE	= "EvaluationStudiesPublicationType",
+					IN_VITRO_TYPE			= "InVitroPublicationType",
+					COMMENT_TYPE			= "CommentPublicationType",
+					REVIEW_TYPE				= "ReviewPublicationType",
+					EDITORIAL_TYPE			= "EditorialPublicationType",
+					RETRACTION_TYPE			= "RetractionOfPublicationType",
+			BOOK_PUBLICATION_TYPE			= "BookPublicationType",
+//			BLOG_PUBLICATION_TYPE			= "BlogPublicationType", defined in ISocialLegend
+			WIKI_PUBLICATION_TYPE			= "WikiPublicationType",
+			WEBPAGE_PUBLICATION_TYPE		= "WebpagePublicationType",
+			NEWSPAPER_PUBLICATION_TYPE		= "NewspaperPublicationType",
+			THESIS_PUBLICATION_TYPE			= "ThesisPublicationType",
+			DATABASE_PUBLICATION_TYPE		= "DatabasePublicationType",
+			REPORT_PUBLICATION_TYPE			= "ReportPublicationType",
+			PATENT_PUBLICATION_TYPE			= "PatentPublicationType",
+			OTHER_PUBLICATION_TYPE			= "OtherPublicationType",
+//			MICROBLOG_PUBLICATION_TYPE		= "MicroblogPublicationType", defined in ISocialLegend
+			ONTOLOGY_PUBLICATION_TYPE		= "OntologyPublicationType";
 		
 	//PROPERTIES
 	//NOTE: Title goes in ITopicQuestsOntology.LABEL_PROPERTY
@@ -55,9 +65,9 @@ public interface IBiblioLegend {
 		ISBN_PROPERTY				= "isbn",
 		ISSN_PROPERTY				= "issn",
 		PUBLICATION_DATE_PROPERTY	= "publDate",
-		PUBLICATION_TYPES_PROPERTY	= "pubTypes",
+		//PUBLICATION_TYPES_PROPERTY	= "pubTypes",
 		/** multivalue allowing that a doc could be in several languages */
-		LANGUAGES_PROPERTY			= "languages",
+		//LANGUAGES_PROPERTY			= "languages",
 		JOURNAL_TITLE_PROPERTY		= "journalTitle",
 		JOURNAL_VOLUME_PROPERTY		= "journalVolume",
 		JOURNAL_NUMBER_PROPERTY		= "journalNumber",

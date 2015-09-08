@@ -174,7 +174,7 @@ public interface ITopicQuestsOntology {
 			
 			/** each node can have one and only one merge tuple */
 			MERGE_TUPLE_PROPERTY						= "mrgT",
-			MERGE_LIST_PROPERTY							= "mergeList",
+			MERGE_LIST_PROPERTY							= "mergeList", //NOT USED
 			/** some nodes which represent web pages might be href'd by other pages */
 			BACKLINK_LIST_PROPERTY						= "bklkL",
 		    /**
@@ -227,6 +227,7 @@ public interface ITopicQuestsOntology {
 			TUPLE_LIST_PROPERTY_RESTRICTED				= "tpLr",
 			//used for pivots
 			PIVOT_LIST_PROPERTY							= "pvL",
+			RESTRICTED_PIVOT_LIST_PROPERTY				= "rpvL",
 			TUPLE_OBJECT_PROPERTY						= "tupO",
 			TUPLE_OBJECT_TYPE_PROPERTY					= "tupOT",
 			TUPLE_SUBJECT_PROPERTY						= "tupS",
@@ -247,8 +248,10 @@ public interface ITopicQuestsOntology {
 			LAST_EDIT_DATE_PROPERTY						= "lEdDt",
 			//boolean
 			IS_PRIVATE_PROPERTY							= "isPrv",
-			IS_VIRTUAL_PROXY							= "isVirtProxy",
-	  
+			IS_VIRTUAL_PROXY							= "isVrt",
+			//true if node has been federated, default: false
+			IS_FEDERATED								= "isFederated",
+			IS_LIVE										= "isLiv",
 	
 			CONVERSATION_NODE_TYPE						= "conTyp",
 			CHILD_NODE_LIST							 	= "cNL",

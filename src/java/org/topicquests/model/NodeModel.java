@@ -303,21 +303,32 @@ public class NodeModel implements INodeModel {
 			String largeImagePath, boolean isTransclude, boolean isPrivate) {
 		IResult result = new ResultPojo();
 		String signature = sourceNode.getLocator()+relationTypeLocator+targetNode.getLocator();
-		ITuple t = (ITuple)this.newInstanceNode(relationTypeLocator, relationTypeLocator, 
+		ITuple t = (ITuple)this.newInstanceNode(signature, relationTypeLocator, 
 				sourceNode.getLocator()+" "+relationTypeLocator+" "+targetNode.getLocator(), "en", userId, smallImagePath, largeImagePath, isPrivate);
 		t.setIsTransclude(isTransclude);
 		t.setObject(targetNode.getLocator());
 		t.setObjectType(ITopicQuestsOntology.NODE_TYPE);
 		t.setSubjectLocator(sourceNode.getLocator());
 		t.setSubjectType(ITopicQuestsOntology.NODE_TYPE);
-		t.setSignature(signature);
-		String tLoc = t.getLocator();
+//		t.setSignature(signature);
+		String tlab = targetNode.getLabel("en");
+		if (tlab == null) {
+			tlab = targetNode.getSubject("en");
+		}
+		String slab = sourceNode.getLabel("en");
+		if (slab == null) {
+			slab = sourceNode.getSubject("en");
+		}
 		if (isPrivate) {
-			sourceNode.addRestrictedTuple(tLoc);
-			targetNode.addRestrictedTuple(tLoc);
+			sourceNode.addRestrictedRelation(relationTypeLocator, signature, 
+					relationTypeLocator, targetNode.getSmallImage(), targetNode.getLocator(), tlab, targetNode.getNodeType(), "t");
+			targetNode.addRestrictedRelation(relationTypeLocator,  signature, 
+					relationTypeLocator, sourceNode.getSmallImage(), sourceNode.getLocator(), slab, sourceNode.getNodeType(), "s");
 		} else {
-			sourceNode.addTuple(tLoc);
-			targetNode.addTuple(tLoc);
+			sourceNode.addRelation(relationTypeLocator, signature, //TODO must add relation details
+					relationTypeLocator, targetNode.getSmallImage(), targetNode.getLocator(), tlab, targetNode.getNodeType(), "t");
+			targetNode.addRelation(relationTypeLocator, signature, 
+					relationTypeLocator, sourceNode.getSmallImage(), sourceNode.getLocator(), slab, sourceNode.getNodeType(), "s");
 		}
 		///////////////////////////////////////////
 		//TODO
@@ -335,7 +346,7 @@ public class NodeModel implements INodeModel {
 		if (x.hasError())
 			result.addErrorString(x.getErrorString());
 		log.logDebug("NodeModel.relateNewNodes "+sourceNode.getLocator()+" "+targetNode.getLocator()+" "+t.getLocator()+" | "+result.getErrorString());
-		result.setResultObject(tLoc);
+		result.setResultObject(t);
 		return result;
 	}
 
@@ -348,21 +359,32 @@ public class NodeModel implements INodeModel {
 			String largeImagePath, boolean isTransclude, boolean isPrivate) {
 		IResult result = new ResultPojo();
 		String signature = sourceNode.getLocator()+relationTypeLocator+targetNode.getLocator();
-		ITuple t = (ITuple)this.newInstanceNode(relationTypeLocator, relationTypeLocator, 
+		ITuple t = (ITuple)this.newInstanceNode(signature, relationTypeLocator, 
 				sourceNode.getLocator()+" "+relationTypeLocator+" "+targetNode.getLocator(), "en", userId, smallImagePath, largeImagePath, isPrivate);
 		t.setIsTransclude(isTransclude);
 		t.setObject(targetNode.getLocator());
 		t.setObjectType(ITopicQuestsOntology.NODE_TYPE);
 		t.setSubjectLocator(sourceNode.getLocator());
 		t.setSubjectType(ITopicQuestsOntology.NODE_TYPE);
-		t.setSignature(signature);
-		String tLoc = t.getLocator();
+//		t.setSignature(signature);
+		String tlab = targetNode.getLabel("en");
+		if (tlab == null) {
+			tlab = targetNode.getSubject("en");
+		}
+		String slab = sourceNode.getLabel("en");
+		if (slab == null) {
+			slab = sourceNode.getSubject("en");
+		}
 		if (isPrivate) {
-			sourceNode.addRestrictedTuple(tLoc);
-			targetNode.addRestrictedTuple(tLoc);
+			sourceNode.addRestrictedRelation(relationTypeLocator, relationTypeLocator, relationTypeLocator, targetNode.getSmallImage(), 
+					targetNode.getLocator(), tlab, targetNode.getNodeType(), "t");
+			targetNode.addRestrictedRelation(relationTypeLocator,  relationTypeLocator, relationTypeLocator, sourceNode.getSmallImage(), 
+					sourceNode.getLocator(), slab, sourceNode.getNodeType(), "s");
 		} else {
-			sourceNode.addTuple(tLoc);
-			targetNode.addTuple(tLoc);
+			sourceNode.addRelation(relationTypeLocator, relationTypeLocator, relationTypeLocator, targetNode.getSmallImage(), 
+					targetNode.getLocator(), tlab, targetNode.getNodeType(), "t");
+			targetNode.addRelation(relationTypeLocator, relationTypeLocator, relationTypeLocator, sourceNode.getSmallImage(), 
+					sourceNode.getLocator(), slab, sourceNode.getNodeType(), "s");
 		}
 		IResult x = database.putNode(sourceNode,true);
 		if (x.hasError())
@@ -374,8 +396,9 @@ public class NodeModel implements INodeModel {
 		if (x.hasError())
 			result.addErrorString(x.getErrorString());
 		log.logDebug("NodeModel.relateNewNodes "+sourceNode.getLocator()+" "+targetNode.getLocator()+" "+t.getLocator()+" | "+result.getErrorString());
-		result.setResultObject(tLoc);
-		return result;	}
+		result.setResultObject(t);
+		return result;	
+	}
 
 	/* (non-Javadoc)
 	 * @see org.topicquests.model.api.INodeModel#assertMerge(java.lang.String, java.lang.String, java.util.Map, double, java.lang.String)
@@ -491,6 +514,60 @@ public class NodeModel implements INodeModel {
 	public IResult setNodeType(INode node, String typeLocator) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public IResult relateExistingNodesAsPivots(INode sourceNode,
+			INode targetNode, String relationTypeLocator, String userId,
+			String smallImagePath, String largeImagePath, boolean isTransclude,
+			boolean isPrivate) {
+		IResult result = new ResultPojo();
+		String signature = sourceNode.getLocator()+relationTypeLocator+targetNode.getLocator();
+		ITuple t = (ITuple)this.newInstanceNode(signature, relationTypeLocator, 
+				sourceNode.getLocator()+" "+relationTypeLocator+" "+targetNode.getLocator(), "en", userId, smallImagePath, largeImagePath, isPrivate);
+		t.setIsTransclude(isTransclude);
+		t.setObject(targetNode.getLocator());
+		t.setObjectType(ITopicQuestsOntology.NODE_TYPE);
+		t.setSubjectLocator(sourceNode.getLocator());
+		t.setSubjectType(ITopicQuestsOntology.NODE_TYPE);
+		String tlab = targetNode.getLabel("en");
+		if (tlab == null) {
+			tlab = targetNode.getSubject("en");
+		}
+		String slab = sourceNode.getLabel("en");
+		if (slab == null) {
+			slab = sourceNode.getSubject("en");
+		}
+		String tLoc = t.getLocator();
+		if (isPrivate) {
+			sourceNode.addRestrictedPivot(relationTypeLocator, signature, 
+					relationTypeLocator, targetNode.getSmallImage(), targetNode.getLocator(), tlab, targetNode.getNodeType(), "t");
+			targetNode.addRestrictedPivot(relationTypeLocator,  signature, 
+					relationTypeLocator, sourceNode.getSmallImage(), sourceNode.getLocator(), slab, sourceNode.getNodeType(), "s");
+		} else {
+			sourceNode.addPivot(relationTypeLocator, signature, 
+					relationTypeLocator, targetNode.getSmallImage(), targetNode.getLocator(), tlab, targetNode.getNodeType(), "t");
+			targetNode.addPivot(relationTypeLocator, signature, 
+					relationTypeLocator, sourceNode.getSmallImage(), sourceNode.getLocator(), slab, sourceNode.getNodeType(), "s");
+		}
+		///////////////////////////////////////////
+		//TODO
+		// WE are now OptimisticLockException sensitive
+		// And it might be possible that we need the
+		// ability to detect that
+		///////////////////////////////////////////
+		IResult x = database.putNode(sourceNode,true);
+		if (x.hasError())
+			result.addErrorString(x.getErrorString());
+		x = database.putNode(targetNode,true);
+		if (x.hasError())
+			result.addErrorString(x.getErrorString());
+		database.putNode(t,true);
+		if (x.hasError())
+			result.addErrorString(x.getErrorString());
+		log.logDebug("NodeModel.relateExistingNodesAsPivots "+sourceNode.getLocator()+" "+targetNode.getLocator()+" "+t.getLocator()+" | "+result.getErrorString());
+		result.setResultObject(t);
+		return result;
 	}
 
 }

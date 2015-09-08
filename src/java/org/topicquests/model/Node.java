@@ -17,12 +17,22 @@ package org.topicquests.model;
 
 import java.util.*;
 
-import org.json.simple.JSONObject;
+//import org.json.simple.JSONObject;
+import net.minidev.json.JSONObject;
+
 import org.nex.util.DateUtil;
 import org.topicquests.model.api.node.ICitation;
 import org.topicquests.model.api.legends.IEventLegend;
+import org.topicquests.model.api.node.IInfoBox;
 import org.topicquests.model.api.node.INode;
-import org.topicquests.model.api.query.INodeQuery;
+import org.topicquests.model.api.node.IRelationStruct;
+import org.topicquests.model.api.node.IChildStruct;
+import org.topicquests.model.api.node.IAirStruct;
+import org.topicquests.model.util.ChildStruct;
+import org.topicquests.model.util.RelationStruct;
+//import org.topicquests.model.util.InfoBox;
+import org.topicquests.model.util.AirStruct;
+//import org.topicquests.model.api.query.INodeQuery;
 import org.topicquests.model.api.node.IPersonEvent;
 import org.topicquests.model.api.legends.IPersonLegend;
 import org.topicquests.model.api.node.ITuple;
@@ -30,10 +40,12 @@ import org.topicquests.model.api.IValueMatrix;
 import org.topicquests.model.api.IXMLFields;
 import org.topicquests.model.api.node.IConceptualGraph;
 import org.topicquests.common.ResultPojo;
+import org.topicquests.common.api.IBiblioLegend;
 import org.topicquests.common.api.IResult;
 import org.topicquests.common.api.ITopicQuestsOntology;
 import org.topicquests.common.api.IRelationsLegend;
 import org.topicquests.util.JSONUtil;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author park
@@ -60,7 +72,7 @@ public class Node implements
 	 * Constructor used when creating from a Solr hit
 	 * @param props 
 	 */
-	public Node(Map props) {
+	public Node(Map<String,Object> props) {
 		properties = JSONUtil.map2JSONObject(props);
 	}
 	
@@ -180,21 +192,28 @@ public class Node implements
 		properties.put(ITopicQuestsOntology.CREATED_DATE_PROPERTY, date);
 	} */
 	public void setDate(Date date) {
-		properties.put(ITopicQuestsOntology.CREATED_DATE_PROPERTY, DateUtil.defaultTimestamp(date));
+		properties.put(ITopicQuestsOntology.CREATED_DATE_PROPERTY, DateUtil.formatIso8601(date));//DateUtil.defaultTimestamp(date));
+	}
+	@Override
+	public void setDate(String date) {
+		properties.put(ITopicQuestsOntology.CREATED_DATE_PROPERTY, date);
 	}
 
 	public void setLastEditDate(Date date) {
-		properties.put(ITopicQuestsOntology.LAST_EDIT_DATE_PROPERTY, DateUtil.defaultTimestamp(date));
+		properties.put(ITopicQuestsOntology.LAST_EDIT_DATE_PROPERTY, DateUtil.formatIso8601(date));//DateUtil.defaultTimestamp(date));
 	}
-
+	@Override
+	public void setLastEditDate(String date) {
+		properties.put(ITopicQuestsOntology.LAST_EDIT_DATE_PROPERTY, date);//DateUtil.defaultTimestamp(date));
+	}
 	
 	public Date getDate() {
 		String dx = (String)properties.get(ITopicQuestsOntology.CREATED_DATE_PROPERTY);
-		return DateUtil.fromDefaultTimestamp(dx);
+		return DateUtil.fromIso8601(dx); //fromDefaultTimestamp(dx);
 	}
 	public Date getLastEditDate() {
 		String dx = (String)properties.get(ITopicQuestsOntology.LAST_EDIT_DATE_PROPERTY);
-		return DateUtil.fromDefaultTimestamp(dx);
+		return DateUtil.fromIso8601(dx); //fromDefaultTimestamp(dx);
 	}
 
 	/* (non-Javadoc)
@@ -302,6 +321,7 @@ public class Node implements
 		return properties;
 	}
 
+	@Override
 	public List<String> listACLValues() {
 		List<String> result = getMultivaluedProperty(ITopicQuestsOntology.RESTRICTION_PROPERTY_TYPE);
 		return result;
@@ -330,23 +350,27 @@ public class Node implements
 		return result;
 	}
 	
+	@Override
 	public void addACLValue(String value) {
 		List<String> l = getMultivaluedProperty(ITopicQuestsOntology.RESTRICTION_PROPERTY_TYPE);
 		if (!l.contains(value))
 			l.add(value);
 	}
 
+	@Override
 	public void removeACLValue(String value) {
 		List<String> l = (List<String>)properties.get(ITopicQuestsOntology.RESTRICTION_PROPERTY_TYPE);
 		if (l != null)
 			l.remove(value);
 	}
 
+	@Override
 	public boolean containsACL(String value) {
 		List<String> creds = listACLValues();
 		return creds.contains(value);
 	}
 	
+	@Override
 	public void addPSI(String psi) {
 //		properties.put(ITopicQuestsOntology.PSI_PROPERTY_TYPE, psi);
 		List<String> ids = getMultivaluedProperty(ITopicQuestsOntology.PSI_PROPERTY_TYPE);
@@ -355,6 +379,7 @@ public class Node implements
 			ids.add(psi);
 	}
 
+	@Override
 	public List<String> listPSIValues() {
 		List<String> result = getMultivaluedProperty(ITopicQuestsOntology.PSI_PROPERTY_TYPE);
 		return result;
@@ -362,30 +387,166 @@ public class Node implements
 
 //TODO HUGE ISSUE WITH internal updates -- must do version if _version_ is available
 
-	public void addTuple(String tupleLocator) {
-//		System.out.println("ADDTUPLE- "+properties);
-		addMultivaluedSetStringProperty(ITopicQuestsOntology.TUPLE_LIST_PROPERTY,tupleLocator);
+	@Override
+	public void addRelation(String relationTypeLocator, String relationLocator, String relationLabel, String targetSmallIcon, String targetLocator, String targetLabel, String nodeType, String sourceOrTarget) {
+		IRelationStruct s = new RelationStruct();
+		s.setRelationLocator(relationLocator);
+		s.setRelationType(relationTypeLocator);
+		s.setRelationLabel(relationLabel);
+		s.setTargetIcon(targetSmallIcon);
+		s.setTargetLocator(targetLocator);
+		s.setTargetLabel(targetLabel);
+		s.setTargetNodeType(nodeType);
+		addMultivaluedSetStringProperty(ITopicQuestsOntology.TUPLE_LIST_PROPERTY,s.toJSON());
 //		System.out.println("ADDTUPLE-0 "+properties.get(ITopicQuestsOntology.TUPLE_LIST_PROPERTY));
 	}
+	
 	@Override
-	public void addRestrictedTuple(String tupleLocator) {
-//		System.out.println("ADDTUPLERestricted- "+properties);
-		addMultivaluedSetStringProperty(ITopicQuestsOntology.TUPLE_LIST_PROPERTY_RESTRICTED,tupleLocator);
+	public void addRestrictedRelation(String relationTypeLocator, String relationLocator, String relationLabel, String targetSmallIcon, String targetLocator, String targetLabel, String nodeType, String sourceOrTarget) {
+		IRelationStruct s = new RelationStruct();
+		s.setRelationLocator(relationLocator);
+		s.setRelationType(relationTypeLocator);
+		s.setRelationLabel(relationLabel);
+		s.setTargetIcon(targetSmallIcon);
+		s.setTargetLocator(targetLocator);
+		s.setTargetLabel(targetLabel);
+		s.setTargetNodeType(nodeType);
+		addMultivaluedSetStringProperty(ITopicQuestsOntology.TUPLE_LIST_PROPERTY_RESTRICTED,s.toJSON());
 //		System.out.println("ADDTUPLERestricted-0 "+properties.get(ITopicQuestsOntology.TUPLE_LIST_PROPERTY_RESTRICTED));
 	}
-
-	public List<String> listTuples() {
-		List<String> result = this.getMultivaluedProperty(ITopicQuestsOntology.TUPLE_LIST_PROPERTY);
-		if (result == null)
-			result = new ArrayList<String>();
-		return result;
+	@Override
+	public void addPivot(String relationTypeLocator, String relationLocator,
+			String relationLabel, String documentSmallIcon, String targetLocator,
+			String targetLabel, String nodeType, String sourceOrTarget) {
+		IRelationStruct s = new RelationStruct();
+		s.setRelationLocator(relationLocator);
+		s.setRelationType(relationTypeLocator);
+		s.setRelationLabel(relationLabel);
+		s.setTargetIcon(documentSmallIcon);
+		s.setTargetLocator(targetLocator);
+		s.setTargetLabel(targetLabel);
+		s.setTargetNodeType(nodeType);
+		addMultivaluedSetStringProperty(ITopicQuestsOntology.PIVOT_LIST_PROPERTY,s.toJSON());
+	}
+	
+	@Override
+	public void addRestrictedPivot(String relationTypeLocator, String relationLocator,
+			String relationLabel,String documentSmallIcon, String targetLocator, String targetLabel, String nodeType, String sourceOrTarget){
+		IRelationStruct s = new RelationStruct();
+		s.setRelationLocator(relationLocator);
+		s.setRelationType(relationTypeLocator);
+		s.setRelationLabel(relationLabel);
+		s.setTargetIcon(documentSmallIcon);
+		s.setTargetLocator(targetLocator);
+		s.setTargetLabel(targetLabel);
+		s.setTargetNodeType(nodeType);
+		addMultivaluedSetStringProperty(ITopicQuestsOntology.RESTRICTED_PIVOT_LIST_PROPERTY,s.toJSON());
+	}
+	
+	@Override
+	public List<String> listPivotsByRelationType(String relationType) {
+		List<String> relns = this.getMultivaluedProperty(ITopicQuestsOntology.PIVOT_LIST_PROPERTY);
+		if (relns == null)
+			return new ArrayList<String>();
+		else if (relationType == null)
+			return relns;
+		else {
+			//This is messy because we are dealing with JSON strings
+			// based on IRelationStruct
+			List<String> result = new ArrayList<String>();
+			String rln,x;
+			int len = relns.size();
+			for (int i=0;i<len;i++) {
+				rln = relns.get(i);
+				x = pluckRelationTypeFromJSONString(rln);
+				if (x != null && x.equals(relationType))
+					result.add(rln);
+			}
+			return result;
+		}
+	}
+	
+	public List<String> listRestrictedPivotsByRelationType(String relationType) {
+		List<String> relns = this.getMultivaluedProperty(ITopicQuestsOntology.RESTRICTED_PIVOT_LIST_PROPERTY);
+		if (relns == null)
+			return new ArrayList<String>();
+		else if (relationType == null)
+			return relns;
+		else {
+			//This is messy because we are dealing with JSON strings
+			// based on IRelationStruct
+			List<String> result = new ArrayList<String>();
+			String rln,x;
+			int len = relns.size();
+			for (int i=0;i<len;i++) {
+				rln = relns.get(i);
+				x = pluckRelationTypeFromJSONString(rln);
+				if (x != null && x.equals(relationType))
+					result.add(rln);
+			}
+			return result;
+		}
 	}
 
-	public List<String> listRestrictedTuples() {
-		List<String> result = this.getMultivaluedProperty(ITopicQuestsOntology.TUPLE_LIST_PROPERTY_RESTRICTED);
-		if (result == null)
-			result = new ArrayList<String>();
+	public List<String> listRelationsByRelationType(String relationType) {
+		List<String> relns = this.getMultivaluedProperty(ITopicQuestsOntology.TUPLE_LIST_PROPERTY);
+		if (relns == null)
+			return new ArrayList<String>();
+		else if (relationType == null)
+			return relns;
+		else {
+			//This is messy because we are dealing with JSON strings
+			// based on IRelationStruct
+			List<String> result = new ArrayList<String>();
+			String rln,x;
+			int len = relns.size();
+			for (int i=0;i<len;i++) {
+				rln = relns.get(i);
+				x = pluckRelationTypeFromJSONString(rln);
+				if (x != null && x.equals(relationType))
+					result.add(rln);
+			}
+			return result;
+		}
+	}
+
+	String pluckRelationTypeFromJSONString(String json) {
+		String result = null;
+		String str = json;
+		int where = str.indexOf(IRelationStruct.RELATION_TYPE);
+		if (where > -1) {
+			str = StringUtils.substring(str, where+(IRelationStruct.RELATION_TYPE.length()));
+			//that should leave :"foo" and we want foo
+			where = str.indexOf('\"');
+			str = StringUtils.substring(str, where);
+			where = str.indexOf('\"');
+			str = StringUtils.substring(str, 0, where);
+			result = str;
+		}
+		System.out.println("Node.pluckRelationTypeFromJSONString "+json+" | "+result);
 		return result;
+	}
+	
+	public List<String> listRestrictedRelationsByRelationType(String relationType) {
+		List<String> relns = this.getMultivaluedProperty(ITopicQuestsOntology.TUPLE_LIST_PROPERTY_RESTRICTED);
+		if (relns == null)
+			return new ArrayList<String>();
+		else if (relationType == null)
+			return relns;
+		else {
+			//This is messy because we are dealing with JSON strings
+			// based on IRelationStruct
+			List<String> result = new ArrayList<String>();
+			String rln,x;
+			int len = relns.size();
+			for (int i=0;i<len;i++) {
+				rln = relns.get(i);
+				x = pluckRelationTypeFromJSONString(rln);
+				if (x != null && x.equals(relationType))
+					result.add(rln);
+			}
+			return result;
+		}
 	}
 
 	public List<String> listLabels() {
@@ -569,6 +730,24 @@ public class Node implements
 			vl.add(value);
 		}
 		
+	}
+	@Override
+	public boolean removePropertyValue(String key, String value) {
+		Object vx = getProperty(key);
+		if (vx != null) {
+			if (vx instanceof String) {
+				this.properties.remove(key);
+				return true;
+			} else {
+				List<String>vl = (List<String>)vx;
+				boolean t = vl.remove(value);
+				if (t) {
+					properties.put(key, vl);
+				}
+				return t;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -804,22 +983,22 @@ public class Node implements
 
 	@Override
 	public void setStartDate(Date startDate) {
-		properties.put(IEventLegend.STARTING_DATE_PROPERTY, DateUtil.defaultTimestamp(startDate));
+		properties.put(IEventLegend.STARTING_DATE_PROPERTY, DateUtil.formatIso8601(startDate));//defaultTimestamp(startDate));
 	}
 	@Override
 	public Date getStartDate() {
 		String dx = (String)properties.get(IEventLegend.STARTING_DATE_PROPERTY);
-		return DateUtil.fromDefaultTimestamp(dx);
+		return DateUtil.fromIso8601(dx); //fromDefaultTimestamp(dx);
 	}
 
 	@Override
 	public void setEndDate(Date endDate) {
-		properties.put(IEventLegend.ENDING_DATE_PROPERTY, DateUtil.defaultTimestamp(endDate));
+		properties.put(IEventLegend.ENDING_DATE_PROPERTY, DateUtil.formatIso8601(endDate)); //defaultTimestamp(endDate));
 	}
 	@Override
 	public Date getEndDate() {
 		String dx = (String)properties.get(IEventLegend.ENDING_DATE_PROPERTY);
-		return DateUtil.fromDefaultTimestamp(dx);
+		return DateUtil.fromIso8601(dx); //fromDefaultTimestamp(dx);
 	}
 
 	@Override
@@ -935,7 +1114,7 @@ public class Node implements
 	public String getThemeLocator() {
 		return (String)properties.get(ITopicQuestsOntology.TUPLE_THEME_PROPERTY);
 	}
-
+/**
 	@Override
 	public void setSignature(String signature) {
 		properties.put(ITopicQuestsOntology.TUPLE_SIGNATURE_PROPERTY, signature);
@@ -945,278 +1124,251 @@ public class Node implements
 	public String getSignature() {
 		return (String)properties.get(ITopicQuestsOntology.TUPLE_SIGNATURE_PROPERTY);
 	}
-
-	@Override
-	public void addPivot(String relationType, String relationLabel,
-			String documentSmallIcon, String targetLocator, String targetLabel,
-			String nodeType) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public List<JSONObject> listPivotsByRelationType(String relationType) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+*/
 
 	@Override
 	public void addChildNode(String contextLocator, String smallIcon,
 			String locator, String subject, String transcluderLocator) {
-		// TODO Auto-generated method stub
-		
+		IChildStruct s = new ChildStruct();
+		s.setContextLocator(contextLocator);
+		s.setLocator(locator);
+		s.setSmallIcon(smallIcon);
+		s.setSubject(subject);
+		if (transcluderLocator != null)
+			s.setTranscluderLocator(transcluderLocator);
+		String json = s.toJSON();
+		List<String> relns = this.getMultivaluedProperty(ITopicQuestsOntology.CHILD_NODE_LIST);
+		if (relns == null)
+			relns = new ArrayList<String>();
+		if (!relns.contains(json)) {
+			relns.add(json);
+			this.properties.put(ITopicQuestsOntology.CHILD_NODE_LIST, relns);
+		}
 	}
 
 	@Override
-	public List<JSONObject> listChildNodes(String contextLocator) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<String> listChildNodes(String contextLocator) {
+		List<String> relns = this.getMultivaluedProperty(ITopicQuestsOntology.CHILD_NODE_LIST);
+		if (relns == null)
+			return new ArrayList<String>();
+		else if (contextLocator == null)
+			return relns;
+		else {
+			//This is messy because we are dealing with JSON strings
+			// based on IChildStruct
+			List<String> result = new ArrayList<String>();
+			String rln,x;
+			int len = relns.size();
+			for (int i=0;i<len;i++) {
+				rln = relns.get(i);
+				x = pluckContextFromJSONString(rln);
+				if (x != null && x.equals(contextLocator))
+					result.add(rln);
+			}
+			return result;
+		}
+	}
+	
+	String pluckContextFromJSONString(String json) {
+		String result = null;
+		String str = json;
+		int where = str.indexOf(IChildStruct.CONTEXT_LOCATOR);
+		if (where > -1) {
+			str = StringUtils.substring(str, where+(IChildStruct.CONTEXT_LOCATOR.length()));
+			//that should leave :"foo" and we want foo
+			where = str.indexOf('\"');
+			str = StringUtils.substring(str, where);
+			where = str.indexOf('\"');
+			str = StringUtils.substring(str, 0,where);
+			result = str;
+		}
+		System.out.println("Node.pluckRelationTypeFromJSONString "+json+" | "+result);
+		return result;
 	}
 
 	@Override
 	public void addParentNode(String contextLocator, String smallIcon,
 			String locator, String subject) {
-		// TODO Auto-generated method stub
-		
+		IChildStruct s = new ChildStruct();
+		s.setContextLocator(contextLocator);
+		s.setLocator(locator);
+		s.setSmallIcon(smallIcon);
+		s.setSubject(subject);
+		String json = s.toJSON();
+		List<String> relns = this.getMultivaluedProperty(ITopicQuestsOntology.PARENT_NODE_LIST);
+		if (relns == null)
+			relns = new ArrayList<String>();
+		if (!relns.contains(json)) {
+			relns.add(json);
+			this.properties.put(ITopicQuestsOntology.PARENT_NODE_LIST, relns);
+		}
 	}
 
 	@Override
-	public List<JSONObject> listParentNodes(String contextLocator) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<String> listParentNodes(String contextLocator) {
+		List<String> relns = this.getMultivaluedProperty(ITopicQuestsOntology.PARENT_NODE_LIST);
+		if (relns == null)
+			return new ArrayList<String>();
+		else if (contextLocator == null)
+			return relns;
+		else {
+			//This is messy because we are dealing with JSON strings
+			// based on IChildStruct
+			List<String> result = new ArrayList<String>();
+			String rln,x;
+			int len = relns.size();
+			for (int i=0;i<len;i++) {
+				rln = relns.get(i);
+				x = pluckContextFromJSONString(rln);
+				if (x != null && x.equals(contextLocator))
+					result.add(rln);
+			}
+			return result;
+		}
 	}
 
+	/////////////////////////////////////////////
+	// AN InfoBox structure is a MAP of named infoboxes
+	// Since we are dealing with JSON here, this should be easy!
+	/////////////////////////////////////////////
 
+	/**
+	 * Internal
+	 * @return does not return <code>null</code>
+	 */
+	Map<String,String> getInfoBoxes() {
+		Map<String,String> result = (Map<String,String>)this.properties.get(ITopicQuestsOntology.INFO_BOX_LIST_PROPERTY);
+		if (result == null)
+			result = new HashMap<String,String>();
+		return result;
+	}
+	
+	/**
+	 * Internal
+	 * @param boxes
+	 */
+	void setInfoBoxes(Map<String,String> boxes) {
+		this.properties.put(ITopicQuestsOntology.INFO_BOX_LIST_PROPERTY, boxes);
+	}
+	
 	@Override
-	public void putInfoBox(String name, String jsonString) {
-		// TODO Auto-generated method stub
-		
+	public void putInfoBox(IInfoBox infoBox) {
+		Map<String,String>ib = getInfoBoxes();
+		ib.put(infoBox.getName(), infoBox.toJSON());
+		setInfoBoxes(ib);
 	}
 
 	@Override
-	public JSONObject getInfoBox(String name) {
-		// TODO Auto-generated method stub
-		return null;
+	public String getInfoBox(String name) {
+		Map<String,String>ib = getInfoBoxes();
+		return ib.get(name);
 	}
 
 	@Override
 	public void removeInfoBox(String name) {
-		// TODO Auto-generated method stub
-		
+		Map<String,String>ib = getInfoBoxes();
+		ib.remove(name);
+		setInfoBoxes(ib);
 	}
 
 	@Override
-	public JSONObject getInfoBoxes() {
-		// TODO Auto-generated method stub
-		return null;
+	public List<String> listInfoBoxes() {
+		List<String>result = new ArrayList<String>();
+		Map<String,String>ib = getInfoBoxes();
+		Iterator<String>itr = ib.keySet().iterator();
+		while (itr.hasNext())
+			result.add(ib.get(itr.next()));
+		return result;
 	}
 
 	@Override
 	public void setSubject(String subjectString, String language,
 			String userLocator) {
-		// TODO Auto-generated method stub
-		
+		String key = makeField(ITopicQuestsOntology.AIR_SUBJECT_PROPERTY, language);
+		IAirStruct s = new AirStruct();
+		s.setLastEditDate(DateUtil.formatIso8601(new Date())); //defaultTimestamp(new Date()));
+		s.setText(subjectString);
+		s.setEditComment("");
+		s.setCreator(userLocator);
+		this.properties.put(key, s.toJSON());
 	}
 
 	@Override
 	public String getSubject(String language) {
-		// TODO Auto-generated method stub
-		return null;
+		String key = makeField(ITopicQuestsOntology.AIR_SUBJECT_PROPERTY, language);
+		return (String)this.properties.get(key);
 	}
 
 	@Override
 	public void updateSubject(String updatedSubject, String language,
 			String userLocator, String comment) {
-		// TODO Auto-generated method stub
-		
+		String key = makeField(ITopicQuestsOntology.AIR_SUBJECT_PROPERTY, language);
+		String versionKey = makeField(ITopicQuestsOntology.AIR_SUBJECT_VERSION_PROPERTY, language);
+		//Updating means making a new version, and pushing the old one onto a version stack
+		String current = getSubject(language);
+		List<String>versions = this.listSubjectVersions(language);
+		IAirStruct s = new AirStruct();
+		s.setLastEditDate(DateUtil.formatIso8601(new Date())); //defaultTimestamp(new Date()));
+		s.setText(updatedSubject);
+		s.setEditComment(comment);
+		s.setCreator(userLocator);
+		this.properties.put(key, s.toJSON());
+		versions.add(current);
+		this.properties.put(versionKey, versions);
 	}
 
 	@Override
 	public void setBody(String bodyString, String language, String userLocator) {
-		// TODO Auto-generated method stub
-		
+		String key = makeField(ITopicQuestsOntology.AIR_BODY_PROPERTY, language);
+		IAirStruct s = new AirStruct();
+		s.setLastEditDate(DateUtil.formatIso8601(new Date())); //defaultTimestamp(new Date()));
+		s.setText(bodyString);
+		s.setEditComment("");
+		s.setCreator(userLocator);
+		this.properties.put(key, s.toJSON());
 	}
 
 	@Override
 	public String getBody(String language) {
-		// TODO Auto-generated method stub
-		return null;
+		String key = makeField(ITopicQuestsOntology.AIR_BODY_PROPERTY, language);
+		return (String)this.properties.get(key);
 	}
 
 	@Override
 	public void updateBody(String updatedBody, String language,
 			String userLocator, String comment) {
-		// TODO Auto-generated method stub
-		
+		String key = makeField(ITopicQuestsOntology.AIR_BODY_PROPERTY, language);
+		String versionKey = makeField(ITopicQuestsOntology.AIR_BODY_VERSION_PROPERTY, language);
+		String current = getSubject(language);
+		List<String>versions = this.listSubjectVersions(language);
+		IAirStruct s = new AirStruct();
+		s.setLastEditDate(DateUtil.formatIso8601(new Date())); //defaultTimestamp(new Date()));
+		s.setText(updatedBody);
+		s.setEditComment(comment);
+		s.setCreator(userLocator);
+		this.properties.put(key, s.toJSON());
+		versions.add(current);
+		this.properties.put(versionKey, versions);
 	}
 
 	@Override
 	public List<String> listBodyVersions(String language) {
-		// TODO Auto-generated method stub
-		return null;
+		String versionKey = makeField(ITopicQuestsOntology.AIR_BODY_VERSION_PROPERTY, language);
+		List<String>result = (List<String>)this.properties.get(versionKey);
+		if (result == null)
+			result = new ArrayList<String>();
+		return result;
 	}
 
 	@Override
 	public List<String> listSubjectVersions(String language) {
-		// TODO Auto-generated method stub
-		return null;
+		String versionKey = makeField(ITopicQuestsOntology.AIR_SUBJECT_VERSION_PROPERTY, language);
+		List<String>result = (List<String>)this.properties.get(versionKey);
+		if (result == null)
+			result = new ArrayList<String>();
+		return result;
 	}
 
-	@Override
-	public void setDocumentTitle(String title, String language, String userId) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getDocumentTitle(String language) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setDocumentAbstract(String abs, String language, String userId) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getDocumentAbstract(String language) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void addAuthorLocator(String authorLocator) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public List<String> listAuthorLocators() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setPublicationTypeLocator(String typeLocator) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getPublicationTypeLocator() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setPublisherLocator(String publisherLocator) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getPublisherLocator() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setDOI(String doi) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getDOI() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setISBN(String isbn) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getISBN() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setISSN(String issn) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getISSSN() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setJournalTitle(String journalTitle) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getJournalTitle() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setPublicationDate(Date d) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Date getPublicationDate() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setJournalVolume(String vol) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getJournalVolume() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setJournalNumber(String num) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getJournalNumber() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setPages(String pages) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getPages() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 
 	@Override
@@ -1252,6 +1404,174 @@ public class Node implements
 			properties.put(ITopicQuestsOntology.TRANSITIVE_CLOSURE_PROPERTY_TYPE, result);
 		}
 	}
+
+	///////////////////////////////////
+	// These are not in TQTopicMap
+	// These are ICitation, which might become an InfoBox
+	///////////////////////////////////
+	@Override
+	public void setDocumentTitle(String title, String language, String userId) {
+		this.setSubject(title, language, userId);
+	}
+
+	@Override
+	public String getDocumentTitle(String language) {
+		return this.getSubject(language);
+	}
+
+	@Override
+	public void setDocumentAbstract(String abs, String language, String userId) {
+		this.setBody(abs, language, userId);
+	}
+
+	@Override
+	public String getDocumentAbstract(String language) {
+		return this.getBody(language);
+	}
+
+	@Override
+	public void addAuthorLocator(String authorLocator) {
+		List<String> ids = getMultivaluedProperty(IBiblioLegend.AUTHOR_LIST_PROPERTY);
+		// no duplicates allowed
+		if (!ids.contains(authorLocator))
+			ids.add(authorLocator);
+	}
+
+	@Override
+	public List<String> listAuthorLocators() {
+		// TODO Auto-generated method stub
+		return (List<String>)properties.get(IBiblioLegend.AUTHOR_LIST_PROPERTY);
+	}
+
+	@Override
+	public void setPublicationTypeLocator(String typeLocator) {
+		properties.put(IBiblioLegend.PUBLICATION_TYPE, typeLocator);
+	}
+
+	@Override
+	public String getPublicationTypeLocator() {
+		return (String)properties.get(IBiblioLegend.PUBLICATION_TYPE);
+	}
+
+	@Override
+	public void setPublisherLocator(String publisherLocator) {
+		properties.put(IBiblioLegend.PUBLISHER_PROPERTY, publisherLocator);
+	}
+
+	@Override
+	public String getPublisherLocator() {
+		return (String)properties.get(IBiblioLegend.PUBLISHER_PROPERTY);
+	}
+
+	@Override
+	public void setDOI(String doi) {
+		properties.put(IBiblioLegend.DOI_PROPERTY, doi);
+	}
+
+	@Override
+	public String getDOI() {
+		return (String)properties.get(IBiblioLegend.DOI_PROPERTY);
+	}
+
+	@Override
+	public void setISBN(String isbn) {
+		properties.put(IBiblioLegend.ISBN_PROPERTY, isbn);
+	}
+
+	@Override
+	public String getISBN() {
+		return (String)properties.get(IBiblioLegend.ISBN_PROPERTY);
+	}
+
+	@Override
+	public void setISSN(String issn) {
+		properties.put(IBiblioLegend.ISSN_PROPERTY, issn);
+	}
+
+	@Override
+	public String getISSSN() {
+		return (String)properties.get(IBiblioLegend.ISSN_PROPERTY);
+	}
+
+	@Override
+	public void setJournalTitle(String journalTitle) {
+		properties.put(IBiblioLegend.JOURNAL_TITLE_PROPERTY, journalTitle);
+	}
+
+	@Override
+	public String getJournalTitle() {
+		return (String)properties.get(IBiblioLegend.JOURNAL_TITLE_PROPERTY);
+	}
+
+	@Override
+	public void setPublicationDate(Date d) {
+		properties.put(IBiblioLegend.PUBLICATION_DATE_PROPERTY, DateUtil.formatIso8601(d)); //defaultTimestamp(d));
+	}
+
+	@Override
+	public Date getPublicationDate() {
+		String dx = (String)properties.get(IBiblioLegend.PUBLICATION_DATE_PROPERTY);
+		return DateUtil.fromIso8601(dx); //fromDefaultTimestamp(dx);
+	}
+
+	@Override
+	public void setJournalVolume(String vol) {
+		properties.put(IBiblioLegend.JOURNAL_VOLUME_PROPERTY, vol);
+	}
+
+	@Override
+	public String getJournalVolume() {
+		return (String)properties.get(IBiblioLegend.JOURNAL_VOLUME_PROPERTY);
+	}
+
+	@Override
+	public void setJournalNumber(String num) {
+		properties.put(IBiblioLegend.JOURNAL_NUMBER_PROPERTY, num);
+	}
+
+	@Override
+	public String getJournalNumber() {
+		return (String)properties.get(IBiblioLegend.JOURNAL_NUMBER_PROPERTY);
+	}
+
+	@Override
+	public void setPages(String pages) {
+		properties.put(IBiblioLegend.PAGES_PROPERTY, pages);
+	}
+
+	@Override
+	public String getPages() {
+		return (String)properties.get(IBiblioLegend.PAGES_PROPERTY);
+	}
+
+	@Override
+	public void setIsFederated(boolean t) {
+		properties.put(ITopicQuestsOntology.IS_FEDERATED, new Boolean(t));
+	}
+
+	@Override
+	public boolean getIsFederated() {
+		Boolean o = (Boolean)properties.get(ITopicQuestsOntology.IS_FEDERATED);
+		if (o != null)
+			return o.booleanValue();
+		return false;
+	}
+
+	@Override
+	public void setIsLive(boolean t) {
+		properties.put(ITopicQuestsOntology.IS_LIVE, new Boolean(t));
+	}
+
+	@Override
+	public boolean getIsLive() {
+		Boolean o = (Boolean)properties.get(ITopicQuestsOntology.IS_LIVE);
+		if (o != null)
+			return o.booleanValue();
+		return true;
+	}
+
+
+
 
 
 

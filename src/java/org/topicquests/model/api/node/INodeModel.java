@@ -230,7 +230,7 @@ public interface INodeModel {
 	   * @param largeImagePath
 	   * @param isTransclude
 	   * @param isPrivate
-	   * @return the locator of the created {@link ITuple}
+	   * @return the created {@link ITuple}
 	   */
 	  IResult relateExistingNodes(INode sourceNode, INode targetNode, String relationTypeLocator, 
 			  String userId, String smallImagePath, String largeImagePath, boolean isTransclude, boolean isPrivate);
@@ -251,6 +251,22 @@ public interface INodeModel {
 	  IResult relateNewNodes(INode sourceNode, INode targetNode, String relationTypeLocator, 
 			  String userId, String smallImagePath, String largeImagePath, boolean isTransclude, boolean isPrivate);
 	 
+	  /**
+	   * Same as adding a relation, except adding pivots
+	   * @param sourceNode
+	   * @param targetNode
+	   * @param relationTypeLocator
+	   * @param userId
+	   * @param smallImagePath
+	   * @param largeImagePath
+	   * @param isTransclude
+	   * @param isPrivate
+	   * @return
+	   */
+	  IResult relateExistingNodesAsPivots(INode sourceNode, INode targetNode, String relationTypeLocator, 
+	  			String userId, String smallImagePath, String largeImagePath, boolean isTransclude, boolean isPrivate);
+	  
+	  
 	  /**
 	   * <p>Assert a merge, which fires up a VirtualProxy, creates a MergeAssertion node (not a triple)
 	   * and adds the list of rule locators to the merge assertion proxy</p>

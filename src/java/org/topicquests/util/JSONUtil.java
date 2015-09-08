@@ -16,8 +16,8 @@
 package org.topicquests.util;
 
 import java.util.*;
-import org.json.simple.JSONObject;
-
+//import org.json.simple.JSONObject;
+import net.minidev.json.JSONObject;
 /**
  * @author park
  *
@@ -29,10 +29,10 @@ public class JSONUtil {
 	 * @param map
 	 * @return
 	 */
-	public static JSONObject map2JSONObject(Map<Object,Object> map) {
+	public static JSONObject map2JSONObject(Map<String,Object> map) {
 		JSONObject result = new JSONObject();
-		Iterator<Object> itr = map.keySet().iterator();
-		Object key;
+		Iterator<String> itr = map.keySet().iterator();
+		String key;
 		while (itr.hasNext()) {
 			key = itr.next();
 			result.put(key, map.get(key));
